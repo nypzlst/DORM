@@ -5,7 +5,7 @@ using System.Text;
 namespace DORM.Attribute
 {
     [System.AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
-    internal class PKAttribute : System.Attribute
+    public class PKAttribute : System.Attribute
     {
     }
 }

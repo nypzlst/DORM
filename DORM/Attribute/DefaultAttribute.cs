@@ -1,21 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace DORM.Attribute
+﻿namespace DORM.Attribute
 {
     [AttributeUsage(AttributeTargets.Property)]
     public class DefaultAttribute : System.Attribute
     {
-        Object DefaultValue;
+        public Object DefaultValue { get; }
 
-        DefaultAttribute(object value)
+        public DefaultAttribute(Object value)
         {
             DefaultValue = value;
         }
 
-        public object GetDefaultValue() => DefaultValue;
+        public DefaultAttribute(string value)
+        {
+            DefaultValue = $"'{value}'";
+        }
 
-        
     }
 }

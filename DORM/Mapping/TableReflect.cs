@@ -23,7 +23,7 @@ namespace DORM.Mapping
             List<TableField> table = new List<TableField>();
 
             var AttributeNameTable = (NameAttribute)System.Attribute.GetCustomAttribute(type, typeof(NameAttribute));
-            string NameTablle = AttributeNameTable.GetName() ?? type.Name;
+            string NameTablle = AttributeNameTable.Name ?? type.Name;
 
 
             foreach(PropertyInfo info in  type.GetProperties())
@@ -39,7 +39,7 @@ namespace DORM.Mapping
                 }
 
                 var attrs = (NameAttribute)System.Attribute.GetCustomAttribute(info, typeof(NameAttribute));
-                var pName = attrs.GetName() ?? info.Name;
+                var pName = attrs.Name ?? info.Name;
 
 
 

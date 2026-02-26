@@ -11,13 +11,11 @@ namespace DORM.Attribute
     [System.AttributeUsage(System.AttributeTargets.Class | System.AttributeTargets.Property , AllowMultiple = false)]
     public class NameAttribute : System.Attribute
     {
-        string Name;
+        public string Name { get; }
 
         public NameAttribute(string name)
         {
             Name = name;
         }
-
-        public string GetName() => Name;
     }
 }

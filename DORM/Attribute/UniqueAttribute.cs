@@ -6,7 +6,7 @@ namespace DORM.Attribute
 {
 
     [System.AttributeUsage(AttributeTargets.Property)]
-    internal class UniqueAttribute : System.Attribute
+    public class UniqueAttribute : System.Attribute
     {
     }
 }
