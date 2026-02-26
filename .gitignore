@@ -389,3 +389,9 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+/_site
+/api
+/docfx.json
+/.editorconfig
+/toc.yml
+/index.md
