@@ -18,7 +18,7 @@ namespace DORM.Mapping
         public bool isPrimaryKey { get; set; } = false;
         public bool isForeginKey { get; set; } = false;
 
-
+        public object DefaultValue { get; set; }
 
 
 

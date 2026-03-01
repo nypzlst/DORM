@@ -26,18 +26,12 @@ namespace DORM.Mapping
             string NameTablle = AttributeNameTable.Name ?? type.Name;
 
 
-            foreach(PropertyInfo info in  type.GetProperties())
+            foreach(PropertyInfo info in type.GetProperties())
             {
                 var pType = info.PropertyType.Name;
 
-                var pNullAllowed = false;
-                var context = new NullabilityInfoContext();
-                var check = context.Create(info);
-                if(check.ReadState == NullabilityState.Nullable)
-                {
-                    pNullAllowed = true;
-                }
-
+                var pNullAllowed = CheckNullInProperty(info);
+                
                 var attrs = (NameAttribute)System.Attribute.GetCustomAttribute(info, typeof(NameAttribute));
                 var pName = attrs.Name ?? info.Name;
 
@@ -48,5 +42,46 @@ namespace DORM.Mapping
 
             }
         }
+
+        public bool CheckNullInProperty(PropertyInfo info)
+        {
+            var context = new NullabilityInfoContext();
+            var check = context.Create(info);
+            if (check.WriteState == NullabilityState.Nullable)
+            {
+                return true;
+            }
+            return false;
+        }
+
+
+        public void CheckAttributes(PropertyInfo info, TableField tField)
+        {
+            System.Attribute[] attributes = System.Attribute.GetCustomAttributes(info);
+            
+
+            foreach(System.Attribute attr in attributes)
+            {
+                //проверку сделать или ифом или свичем
+                switch (attr)
+                {
+                    case NameAttribute name:
+                        tField.FieldName = name.Name ?? info.Name;
+                        break;
+                    case UniqueAttribute unique:
+                        tField.isUnique = true;
+                        break;
+                    case PKAttribute primaryKey:
+                        tField.isPrimaryKey = true;
+                        break;
+                    case DefaultAttribute da:
+
+                }
+            }
+
+        }
     }
+
+
+
 }
