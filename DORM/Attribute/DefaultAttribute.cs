@@ -1,7 +1,10 @@
-﻿namespace DORM.Attribute
+﻿using DORM.Mapping;
+using System.Reflection;
+
+namespace DORM.Attribute
 {
     [AttributeUsage(AttributeTargets.Property)]
-    public class DefaultAttribute : System.Attribute
+    public class DefaultAttribute : System.Attribute, IApplyAttribute
     {
         public Object DefaultValue { get; }
 
@@ -15,5 +18,9 @@
             DefaultValue = $"'{value}'";
         }
 
+        public void Apply(TableField tField, PropertyInfo info)
+        {
+            tField.DefaultValue = DefaultValue;
+        }
     }
 }

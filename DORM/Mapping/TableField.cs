@@ -11,33 +11,25 @@ namespace DORM.Mapping
     /// </summary>
     public class TableField
     {
-        public string FieldName { get; set; } 
-        public string FieldType { get; set; }
-        public bool isNullability { get; set; } = true;
-        public bool isUnique { get; set; } = false;
-        public bool isPrimaryKey { get; set; } = false;
-        public bool isForeginKey { get; set; } = false;
+        public string FieldName { get; internal set; } 
+        public string FieldType { get; internal set; }
+        public bool isNullability { get; internal set; }
+        public bool isUnique { get; internal set; } = false;
+        public bool isPrimaryKey { get; internal set; } = false;
+        public bool isForeginKey { get; internal set; } = false;
 
-        public object DefaultValue { get; set; }
+        public object DefaultValue { get; internal set; }
+        public string DefaultSqlValue { get; internal set; }  
 
+        public Type FKReferenceTable { get; internal set; }
+        public string FKReferenceId{ get; internal set; }
 
-
-        /// <summary>
-        /// Конструктор який приймає атрибути полів
-        /// </summary>
-        /// <param name="fieldName">Назва колонки</param>
-        /// <param name="fieldType">Тип колонки</param>
-        /// <param name="nullability">Можливість бути null</param>
-        public TableField(string fieldName, string fieldType, bool nullability = true, bool unique = false, bool pk = false, bool fk = false )
+        public TableField(string fieldName, string fieldType, bool isNullability = true)
         {
             FieldName = fieldName;
             FieldType = fieldType;
-            isNullability = nullability;
-            isUnique = unique;
-            isPrimaryKey = pk;
-            isForeginKey = fk;
+            this.isNullability = isNullability;
         }
-
 
         public override string ToString()
         {
@@ -53,17 +45,30 @@ namespace DORM.Mapping
 
             var temp = TypeMap.GetValueOrDefault(FieldType);
             string _requestString = $"{FieldName} {temp.ToUpper()}";
-            if (!isNullability)
+            if (isNullability && !isPrimaryKey)
             {
                 _requestString += " NOT NULL";
             }
             if (isUnique)
             {
-                _requestString += " AUTO_INCREMENT";
+                _requestString += " UNIQUE";
             }
             if (isPrimaryKey)
             {
-                _requestString += " PRIMARY KEY ";
+                _requestString += " NOT NULL AUTO_INCREMENT PRIMARY KEY ";
+            }
+            //  написать фк в другом метсе
+            //if (isForeginKey)
+            //{
+            //    _requestString += $"FOREIGN KEY ({field.FieldName}) REFERENCES {field.FKReferenceTable.Name}({field.FKReferenceId})"           
+            //}
+            if (DefaultValue != null)
+            {
+                _requestString += $" DEFAULT {DefaultValue}";
+            }
+            else if (DefaultSqlValue != null)
+            {
+                _requestString += $" DEFAULT ({DefaultSqlValue})";
             }
 
             return _requestString;

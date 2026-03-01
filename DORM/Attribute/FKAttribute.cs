@@ -1,8 +1,11 @@
-﻿namespace DORM.Attribute
+﻿using DORM.Mapping;
+using System.Reflection;
+
+namespace DORM.Attribute
 {
 
     [AttributeUsage(AttributeTargets.Property)]
-    public class FKAttribute : System.Attribute
+    public class FKAttribute : System.Attribute, IApplyAttribute
     {
 
         public Type ReferenceTable { get; }
@@ -14,6 +17,11 @@
             ReferenceTableId = string.IsNullOrEmpty(idTable) ? throw new ArgumentException("Null Id Field") : idTable;
         }
 
-        
+        public void Apply(TableField tField, PropertyInfo info)
+        {
+            tField.isForeginKey = true;
+            tField.FKReferenceId = ReferenceTableId;
+            tField.FKReferenceTable = ReferenceTable;
+        }
     }
 }

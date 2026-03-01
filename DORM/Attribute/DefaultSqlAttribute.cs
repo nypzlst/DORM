@@ -1,9 +1,11 @@
-﻿using System.Text.RegularExpressions;
+﻿using DORM.Mapping;
+using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace DORM.Attribute
 {
     [AttributeUsage(AttributeTargets.Property)]
-    public class DefaultSqlAttribute : System.Attribute
+    public class DefaultSqlAttribute : System.Attribute, IApplyAttribute
     {
         public string SqlQuery { get;  }
 
@@ -14,6 +16,11 @@ namespace DORM.Attribute
                 throw new ArgumentException("Incorrect command on Default");
             }
             SqlQuery = sqlQuery;
+        }
+
+        public void Apply(TableField tField, PropertyInfo info)
+        {
+            tField.DefaultSqlValue = SqlQuery;
         }
     }
 }
