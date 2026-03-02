@@ -13,10 +13,10 @@ namespace DORM.Mapping
     {
         public string FieldName { get; internal set; } 
         public string FieldType { get; internal set; }
-        public bool isNullability { get; internal set; }
-        public bool isUnique { get; internal set; } = false;
-        public bool isPrimaryKey { get; internal set; } = false;
-        public bool isForeginKey { get; internal set; } = false;
+        public bool IsNullable { get; internal set; }
+        public bool IsUnique { get; internal set; } = false;
+        public bool IsPrimaryKey { get; internal set; } = false;
+        public bool IsForeignKey { get; internal set; } = false;
 
         public object DefaultValue { get; internal set; }
         public string DefaultSqlValue { get; internal set; }  
@@ -26,64 +26,57 @@ namespace DORM.Mapping
 
         public TableField(string fieldName, string fieldType, bool isNullability = true)
         {
-            FieldName = fieldName;
+            FieldName = TableReflect.SanitizeName(fieldName);
             FieldType = fieldType;
-            this.isNullability = isNullability;
+            IsNullable = isNullability;
         }
 
         public override string ToString()
         {
-            if (!Regex.IsMatch(FieldName, @"^[a-zA-Z_][a-zA-Z0-9_]*$"))
-            {
-                return "ErrorColumnName";
-            }
-            if (!TypeMap.TryGetValue(FieldType, out var sqlType))
-            {
-                return "TypeValueNotCorrect";
-            }
-
-
-            var temp = TypeMap.GetValueOrDefault(FieldType);
-            string _requestString = $"{FieldName} {temp.ToUpper()}";
-            if (isNullability && !isPrimaryKey)
-            {
-                _requestString += " NOT NULL";
-            }
-            if (isUnique)
-            {
-                _requestString += " UNIQUE";
-            }
-            if (isPrimaryKey)
-            {
-                _requestString += " NOT NULL AUTO_INCREMENT PRIMARY KEY ";
-            }
-            //  написать фк в другом метсе
-            //if (isForeginKey)
+            //if (!Regex.IsMatch(FieldName, @"^[a-zA-Z_][a-zA-Z0-9_]*$"))
             //{
-            //    _requestString += $"FOREIGN KEY ({field.FieldName}) REFERENCES {field.FKReferenceTable.Name}({field.FKReferenceId})"           
+            //    return "ErrorColumnName";
             //}
+            
+
+
+            var temp = TypeMap.GetValueOrDefault(FieldType) ?? throw new ArgumentException($"Incorect type : {FieldType}");
+            string requestString = $"{FieldName} {temp.ToUpper()}";
+
+            if (!IsNullable && !IsPrimaryKey)
+            {
+                requestString += " NOT NULL";
+            }
+            if (IsUnique)
+            {
+                requestString += " UNIQUE";
+            }
+            if (IsPrimaryKey)
+            {
+                requestString += " NOT NULL AUTO_INCREMENT PRIMARY KEY ";
+            }
             if (DefaultValue != null)
             {
-                _requestString += $" DEFAULT {DefaultValue}";
+                requestString += $" DEFAULT {DefaultValue}";
             }
             else if (DefaultSqlValue != null)
             {
-                _requestString += $" DEFAULT ({DefaultSqlValue})";
+                requestString += $" DEFAULT ({DefaultSqlValue})";
             }
 
-            return _requestString;
+            return requestString;
 
         }
 
         private static readonly Dictionary<string, string> TypeMap = new()
         {
-            { "String",   "nvarchar(255)" },
+            { "String",   "varchar(255)"  },
             { "Int32",    "int"           },
             { "Int64",    "bigint"        },
-            { "Boolean",  "bit"           },
+            { "Boolean",  "tinyint(1)"    },
             { "DateTime", "datetime"      },
             { "Decimal",  "decimal(18,2)" },
-            { "Double",   "float"         },
+            { "Double",   "double"        },
         };
 
     }

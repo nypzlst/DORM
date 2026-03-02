@@ -14,7 +14,7 @@ namespace DORM.Example
         public string? Name { get; set; }
 
         [FK(typeof(User),nameof(User.Id))]
-        public User IdUser { get; set; } 
+        public int IdUser { get; set; } 
 
 
     }

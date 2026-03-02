@@ -7,6 +7,7 @@ namespace DORM.Attribute
     [AttributeUsage(AttributeTargets.Property)]
     public class FKAttribute : System.Attribute, IApplyAttribute
     {
+// доробити зв'язки many-to-many, one-to-many ...
 
         public Type ReferenceTable { get; }
         public string ReferenceTableId { get; }
@@ -19,7 +20,7 @@ namespace DORM.Attribute
 
         public void Apply(TableField tField, PropertyInfo info)
         {
-            tField.isForeginKey = true;
+            tField.IsForeignKey = true;
             tField.FKReferenceId = ReferenceTableId;
             tField.FKReferenceTable = ReferenceTable;
         }

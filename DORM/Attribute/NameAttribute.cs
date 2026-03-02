@@ -19,7 +19,7 @@ namespace DORM.Attribute
 
         public NameAttribute(string name)
         {
-            if (!Regex.IsMatch(name, @"^[a-zA-Z][a-zA-Z0-9]*$"))
+            if (!Regex.IsMatch(name, @"^[a-zA-Z][a-zA-Z0-9_]*$"))
             {
                 throw new ArgumentException("Invalid name format.");
             }
@@ -28,7 +28,7 @@ namespace DORM.Attribute
 
         public void Apply(TableField tField, PropertyInfo info)
         {
-            tField.FieldName = string.IsNullOrWhiteSpace(Name) ? info.Name : Name;
+            tField.FieldName = info.Name ?? Name;
         }
     }
 }

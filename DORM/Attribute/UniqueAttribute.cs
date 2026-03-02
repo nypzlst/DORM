@@ -12,7 +12,7 @@ namespace DORM.Attribute
     {
         public void Apply(TableField tField, PropertyInfo info)
         {
-            tField.isUnique = true;
+            tField.IsUnique = true;
         }
     }
 }

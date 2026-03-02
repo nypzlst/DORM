@@ -15,7 +15,7 @@ namespace DORM.Attribute
 
         public DefaultAttribute(string value)
         {
-            DefaultValue = $"'{value}'";
+            DefaultValue = $"'{value.Replace("'", "''")}'"; ;
         }
 
         public void Apply(TableField tField, PropertyInfo info)

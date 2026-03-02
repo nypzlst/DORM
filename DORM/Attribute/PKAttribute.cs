@@ -11,7 +11,7 @@ namespace DORM.Attribute
     {
         public void Apply(TableField tField, PropertyInfo info)
         {
-            tField.isPrimaryKey = true;
+            tField.IsPrimaryKey = true;
         }
     }
 }
