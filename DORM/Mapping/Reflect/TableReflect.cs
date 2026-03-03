@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace DORM.Mapping
+namespace DORM.Mapping.Reflect
 {
 
     /// <summary>

@@ -1,4 +1,4 @@
-﻿using DORM.Mapping;
+﻿using DORM.Mapping.Reflect;
 using System.Reflection;
 
 namespace DORM.Attribute
