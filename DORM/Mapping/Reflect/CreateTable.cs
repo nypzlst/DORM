@@ -12,13 +12,13 @@ namespace DORM.Mapping.Reflect
     /// Клас котрий відповідає за рефлексію пов'язаною з таблицями бази даних
     /// </summary>
 
-    public class TableReflect
+    public class CreateTable
     {
         /// <summary>
         /// Метод для створення таблиці, котрий отримує клас користувача
         /// </summary>
         /// <param name="obj">Клас котрий містить в собі параметри</param>
-        public string CreateTable<T>() where T : class
+        public string Create<T>() where T : class
         {
             var sb = new StringBuilder();
             Type type = typeof(T);

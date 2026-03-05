@@ -26,7 +26,7 @@ namespace DORM.Mapping.Reflect
 
         public TableField(string fieldName, string fieldType, bool isNullability = true)
         {
-            FieldName = TableReflect.SanitizeName(fieldName);
+            FieldName = CreateTable.SanitizeName(fieldName);
             FieldType = fieldType;
             IsNullable = isNullability;
         }
