@@ -1,4 +1,5 @@
 ﻿using DORM.Attribute;
+using DORM.Infrastructure.CRUD;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -12,13 +13,10 @@ namespace DORM.Mapping.Reflect
     /// Клас котрий відповідає за рефлексію пов'язаною з таблицями бази даних
     /// </summary>
 
-    public class CreateTable
+    public class CreateTable<T> : ICRUD<T> where T : class
     {
-        /// <summary>
-        /// Метод для створення таблиці, котрий отримує клас користувача
-        /// </summary>
-        /// <param name="obj">Клас котрий містить в собі параметри</param>
-        public string Create<T>() where T : class
+
+        public string Create(T entity) 
         {
             var sb = new StringBuilder();
             Type type = typeof(T);
@@ -94,6 +92,23 @@ namespace DORM.Mapping.Reflect
             if (!Regex.IsMatch(name, @"^[a-zA-Z_][a-zA-Z0-9_]*$"))
                 throw new ArgumentException($"Invalid table name: {name}");
             return name;
+        }
+
+       
+
+        public string Select(T entity)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string Update(T entity)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string Delete(T entity)
+        {
+            throw new NotImplementedException();
         }
     }
 
