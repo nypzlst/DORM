@@ -1,4 +1,5 @@
 ﻿using DORM.Attribute;
+using DORM.Infrastructure.Cache;
 using DORM.Infrastructure.Core;
 using DORM.Infrastructure.CRUD;
 using DORM.Mapping;
@@ -13,6 +14,12 @@ namespace DORM.Providers.MySQL{
 
     public class MySqlCrudQuery<T> : ICrudQuery<T> where T : class
     {
+        private readonly ICacheController _cache;
+
+        public MySqlCrudQuery(ICacheController cache)
+        {
+            _cache = cache;
+        }
 
         public string Create(T entity) 
         {
@@ -22,13 +29,14 @@ namespace DORM.Providers.MySQL{
             var AttributeNameTable = (NameAttribute)System.Attribute.GetCustomAttribute(type, typeof(NameAttribute));
             string NameTable = UniversalMethod.SanitizeName(AttributeNameTable?.Name ?? type.Name);
 
+            List<TableField> table = MappingClass.MapClass<T>();
+            _cache.Store(NameTable, table);
+
 
             sb.Append("CREATE TABLE ")
               .Append(NameTable)
-              .Append("(");
-
-            List<TableField> table = MappingClass.MapClass<T>();
-            sb.Append(string.Join(", ", table));
+              .Append("( ")
+              .Append(string.Join(", ", table));
 
 
             var foreignKeys = table
@@ -51,7 +59,20 @@ namespace DORM.Providers.MySQL{
 
         public string Select(T entity)
         {
-            throw new NotImplementedException();
+            Type type = typeof(T);
+            string NameTable = type.Name;
+            List<TableField> table;
+
+            if(_cache.TryGet(NameTable,out table))
+            {
+
+            }
+
+
+
+
+
+            return "Hello world";
         }
 
         public string Update(T entity)

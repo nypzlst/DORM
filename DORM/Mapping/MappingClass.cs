@@ -9,8 +9,7 @@ using System.Text;
 namespace DORM.Mapping
 {
     public class MappingClass
-    {
-        
+    {   
         public static List<TableField> MapClass<T>() where T : class
         {
             Type type = typeof(T);
