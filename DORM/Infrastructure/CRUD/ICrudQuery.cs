@@ -4,7 +4,7 @@ using System.Text;
 
 namespace DORM.Infrastructure.CRUD
 {
-    internal interface ICRUD <T> where T : class 
+    internal interface ICrudQuery <T> where T : class 
     {
         string Create(T entity);
         string Select(T entity);

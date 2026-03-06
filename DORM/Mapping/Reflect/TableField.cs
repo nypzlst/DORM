@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DORM.Infrastructure.Core;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -26,20 +27,13 @@ namespace DORM.Mapping.Reflect
 
         public TableField(string fieldName, string fieldType, bool isNullability = true)
         {
-            FieldName = CreateTable.SanitizeName(fieldName);
+            FieldName = UniversalMethod.SanitizeName(fieldName);
             FieldType = fieldType;
             IsNullable = isNullability;
         }
 
         public override string ToString()
         {
-            //if (!Regex.IsMatch(FieldName, @"^[a-zA-Z_][a-zA-Z0-9_]*$"))
-            //{
-            //    return "ErrorColumnName";
-            //}
-            
-
-
             var temp = TypeMap.GetValueOrDefault(FieldType) ?? throw new ArgumentException($"Incorect type : {FieldType}");
             string requestString = $"{FieldName} {temp.ToUpper()}";
 
