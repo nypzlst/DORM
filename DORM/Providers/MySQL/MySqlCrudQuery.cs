@@ -66,18 +66,24 @@ namespace DORM.Providers.MySQL{
 
             if (!_cache.TryGet(NameTable, out table))
                 throw new ArgumentException("Don`t cached table");
-                // дописати виклик кешування таблиці якщо її не має в кеші
+            // дописати виклик кешування таблиці якщо її не має в кеші
 
-            var body = (NewExpression)selector.Body;
-            var reqFields = body.Members.Select(m => m.Name).ToList();
+            IEnumerable<string> reqFields;
 
+            if(selector.Body is NewExpression body)
+                reqFields = body.Members.Select(m => m.Name);
+            else if(selector.Body is MemberExpression member)
+                reqFields = new[] { member.Member.Name };
+            else
+                throw new ArgumentException("Incorect anonyms type");
+            
             var fields = reqFields.Where(x => table.Any(t => t.FieldName == x));
 
             if (!fields.Any())
                 throw new ArgumentException("No one fields find");
 
-
             return $"SELECT {string.Join(", ", fields)} FROM {NameTable}";
+            // Expression Visitor для селекта з where
         }
 
         public string Update(T entity)
