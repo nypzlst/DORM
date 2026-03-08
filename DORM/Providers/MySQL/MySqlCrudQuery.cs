@@ -6,6 +6,7 @@ using DORM.Mapping;
 using DORM.Mapping.Reflect;
 using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -57,22 +58,26 @@ namespace DORM.Providers.MySQL{
 
         }
 
-        public string Select(T entity)
+        public string Select<TResult>(Expression<Func<T, TResult>> selector)
         {
             Type type = typeof(T);
             string NameTable = type.Name;
             List<TableField> table;
 
-            if(_cache.TryGet(NameTable,out table))
-            {
+            if (!_cache.TryGet(NameTable, out table))
+                throw new ArgumentException("Don`t cached table");
+                // дописати виклик кешування таблиці якщо її не має в кеші
 
-            }
+            var body = (NewExpression)selector.Body;
+            var reqFields = body.Members.Select(m => m.Name).ToList();
+
+            var fields = reqFields.Where(x => table.Any(t => t.FieldName == x));
+
+            if (!fields.Any())
+                throw new ArgumentException("No one fields find");
 
 
-
-
-
-            return "Hello world";
+            return $"SELECT {string.Join(", ", fields)} FROM {NameTable}";
         }
 
         public string Update(T entity)
