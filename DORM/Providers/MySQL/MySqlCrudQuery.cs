@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -88,12 +89,74 @@ namespace DORM.Providers.MySQL{
 
         public string Update(T entity)
         {
-            throw new NotImplementedException();
+            Type type = typeof(T);
+            var AttributeNameTable = (NameAttribute)System.Attribute.GetCustomAttribute(type, typeof(NameAttribute));
+            string NameTable = UniversalMethod.SanitizeName(AttributeNameTable?.Name ?? type.Name);
+
+            List<TableField> table;
+            if (!_cache.TryGet(NameTable, out table))
+                throw new ArgumentException("Don`t cached table");
+
+            string IdField = table.Single(x => x.IsPrimaryKey).FieldName;
+            var IdPropertyVal = type.GetProperty(IdField).GetValue(entity);
+            var sb = new StringBuilder();
+
+
+            var changesList = new List<string>();
+
+            sb.Append("UPDATE ").Append(NameTable).Append(" SET ");
+            foreach(PropertyInfo info in type.GetProperties())
+            {
+                
+                var field = table.SingleOrDefault(x => x.FieldName == info.Name);
+                var fieldValue = info.GetValue(entity);
+
+                if (field is not null && fieldValue is not null )
+                {
+                    if (field.IsPrimaryKey) continue; 
+
+                    if (fieldValue is string || fieldValue is DateTime)
+                        changesList.Add($"{field.FieldName} = '{fieldValue}'"); 
+                    else if (fieldValue is bool b)
+                        changesList.Add($"{field.FieldName} = {(b ? 1 : 0)}");
+                    else
+                        changesList.Add($"{field.FieldName} = {fieldValue}");
+                }
+            }
+
+            sb.Append(string.Join(", ", changesList));
+            
+            
+            if (IdPropertyVal is int)
+                sb.Append(" WHERE ").Append(IdField).Append(" = ").Append(IdPropertyVal);
+            else if (IdPropertyVal is Guid)
+                sb.Append(" WHERE ").Append(IdField).Append(" = ").Append($"'{IdPropertyVal}'");
+            else throw new ArgumentException("Incorect value in id field");
+
+
+            return sb.ToString();
+
         }
 
         public string Delete(T entity)
         {
-            throw new NotImplementedException();
+            Type type = typeof(T);
+            var AttributeNameTable = (NameAttribute)System.Attribute.GetCustomAttribute(type, typeof(NameAttribute));
+            string NameTable = UniversalMethod.SanitizeName(AttributeNameTable?.Name ?? type.Name);
+
+            List<TableField> table;
+            if (!_cache.TryGet(NameTable, out table))
+                throw new ArgumentException("Don`t cached table");
+
+            string IdField = table.Single(x => x.IsPrimaryKey).FieldName;
+            var IdPropertyVal = type.GetProperty(IdField).GetValue(entity);
+
+            if (IdPropertyVal is int)
+                return $"DELETE FROM {NameTable} WHERE {IdField} = {IdPropertyVal}";
+            else if (IdPropertyVal is Guid)
+                return $"DELETE FROM {NameTable} WHERE {IdField} = '{IdPropertyVal}'";
+            else throw new ArgumentException("Incorect value in id field");
+
         }
     }
 
