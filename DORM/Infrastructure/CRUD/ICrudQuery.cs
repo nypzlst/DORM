@@ -7,9 +7,10 @@ namespace DORM.Infrastructure.CRUD
 {
     internal interface ICrudQuery <T> where T : class 
     {
-        string Create(T entity);
+        string CreateTable(T entity);
         string Select<TResult>(Expression<Func<T, TResult>> expression);
         string Update(T entity);
         string Delete(T entity);
+        string Insert(T entity);
     }
 }

@@ -23,7 +23,7 @@ namespace DORM.Providers.MySQL{
             _cache = cache;
         }
 
-        public string Create(T entity) 
+        public string CreateTable(T entity) 
         {
             var sb = new StringBuilder();
             Type type = typeof(T);
@@ -89,26 +89,23 @@ namespace DORM.Providers.MySQL{
 
         public string Update(T entity)
         {
-            Type type = typeof(T);
-            var AttributeNameTable = (NameAttribute)System.Attribute.GetCustomAttribute(type, typeof(NameAttribute));
-            string NameTable = UniversalMethod.SanitizeName(AttributeNameTable?.Name ?? type.Name);
+            string TableName = AdditionalQueryMethod.GetNameTable<T>();
 
-            List<TableField> table;
-            if (!_cache.TryGet(NameTable, out table))
-                throw new ArgumentException("Don`t cached table");
+            List<TableField> Table = AdditionalQueryMethod.GetCachedTable(TableName,_cache);
 
-            string IdField = table.Single(x => x.IsPrimaryKey).FieldName;
-            var IdPropertyVal = type.GetProperty(IdField).GetValue(entity);
+            var pkInfo = AdditionalQueryMethod.GetPrimaryKey(Table,entity);
+
+            string IdField = pkInfo.idFieldName;
+            var IdPropertyVal = pkInfo.idFieldValue;
+             
             var sb = new StringBuilder();
-
-
             var changesList = new List<string>();
 
-            sb.Append("UPDATE ").Append(NameTable).Append(" SET ");
-            foreach(PropertyInfo info in type.GetProperties())
+            sb.Append("UPDATE ").Append(TableName).Append(" SET ");
+            foreach(PropertyInfo info in typeof(T).GetProperties())
             {
                 
-                var field = table.SingleOrDefault(x => x.FieldName == info.Name);
+                var field = Table.SingleOrDefault(x => x.FieldName == info.Name);
                 var fieldValue = info.GetValue(entity);
 
                 if (field is not null && fieldValue is not null )
@@ -125,14 +122,8 @@ namespace DORM.Providers.MySQL{
             }
 
             sb.Append(string.Join(", ", changesList));
-            
-            
-            if (IdPropertyVal is int)
-                sb.Append(" WHERE ").Append(IdField).Append(" = ").Append(IdPropertyVal);
-            else if (IdPropertyVal is Guid)
-                sb.Append(" WHERE ").Append(IdField).Append(" = ").Append($"'{IdPropertyVal}'");
-            else throw new ArgumentException("Incorect value in id field");
 
+            AdditionalQueryMethod.BuildWhereById(sb, IdField, IdPropertyVal);
 
             return sb.ToString();
 
@@ -140,23 +131,22 @@ namespace DORM.Providers.MySQL{
 
         public string Delete(T entity)
         {
-            Type type = typeof(T);
-            var AttributeNameTable = (NameAttribute)System.Attribute.GetCustomAttribute(type, typeof(NameAttribute));
-            string NameTable = UniversalMethod.SanitizeName(AttributeNameTable?.Name ?? type.Name);
+            string tableName = AdditionalQueryMethod.GetNameTable<T>();
 
-            List<TableField> table;
-            if (!_cache.TryGet(NameTable, out table))
-                throw new ArgumentException("Don`t cached table");
+            var table = AdditionalQueryMethod.GetCachedTable(tableName, _cache);
+            var pkInfo = AdditionalQueryMethod.GetPrimaryKey(table, entity);
 
-            string IdField = table.Single(x => x.IsPrimaryKey).FieldName;
-            var IdPropertyVal = type.GetProperty(IdField).GetValue(entity);
+            var sb = new StringBuilder();
 
-            if (IdPropertyVal is int)
-                return $"DELETE FROM {NameTable} WHERE {IdField} = {IdPropertyVal}";
-            else if (IdPropertyVal is Guid)
-                return $"DELETE FROM {NameTable} WHERE {IdField} = '{IdPropertyVal}'";
-            else throw new ArgumentException("Incorect value in id field");
+            sb.Append("DELETE FROM ").Append(tableName);
+            AdditionalQueryMethod.BuildWhereById(sb, pkInfo.idFieldName, pkInfo.idFieldValue);
+            return sb.ToString();
 
+        }
+
+        public string Insert(T entity)
+        {
+            throw new NotImplementedException();
         }
     }
 
