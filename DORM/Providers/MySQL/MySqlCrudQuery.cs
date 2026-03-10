@@ -58,11 +58,11 @@ namespace DORM.Providers.MySQL{
             return sb.ToString();
 
         }
-
+        // select без умови, лише по колонкам 
         public string Select<TResult>(Expression<Func<T, TResult>> selector)
         {
             Type type = typeof(T);
-            string NameTable = type.Name;
+            string NameTable = AdditionalQueryMethod.GetNameTable<T>();
             List<TableField> table;
 
             if (!_cache.TryGet(NameTable, out table))
@@ -87,6 +87,7 @@ namespace DORM.Providers.MySQL{
             // Expression Visitor для селекта з where
         }
 
+        
         public string Update(T entity)
         {
             string TableName = AdditionalQueryMethod.GetNameTable<T>();
@@ -108,14 +109,16 @@ namespace DORM.Providers.MySQL{
                 var field = Table.SingleOrDefault(x => x.FieldName == info.Name);
                 var fieldValue = info.GetValue(entity);
 
-                if (field is not null && fieldValue is not null )
+                if (field is not null)
                 {
-                    if (field.IsPrimaryKey) continue; 
+                    if (field.IsPrimaryKey) continue;
 
                     if (fieldValue is string || fieldValue is DateTime)
-                        changesList.Add($"{field.FieldName} = '{fieldValue}'"); 
+                        changesList.Add($"{field.FieldName} = '{fieldValue}'");
                     else if (fieldValue is bool b)
                         changesList.Add($"{field.FieldName} = {(b ? 1 : 0)}");
+                    else if (fieldValue is null)
+                        changesList.Add($"{field.FieldName} = NULL");
                     else
                         changesList.Add($"{field.FieldName} = {fieldValue}");
                 }
@@ -146,7 +149,37 @@ namespace DORM.Providers.MySQL{
 
         public string Insert(T entity)
         {
-            throw new NotImplementedException();
+            StringBuilder sb = new StringBuilder();
+            string tableName = AdditionalQueryMethod.GetNameTable<T>();
+
+            sb.Append("INSERT INTO ").Append(tableName).Append(" (");
+            var table = AdditionalQueryMethod.GetCachedTable(tableName,_cache);
+            List<string> fieldToInsert = new();
+            List<object> fieldValues = new();
+
+            foreach (PropertyInfo info in typeof(T).GetProperties())
+            {
+                var checkField = table.SingleOrDefault(x => x.FieldName == info.Name);
+                if (checkField != null && !checkField.IsPrimaryKey)
+                {
+                    fieldToInsert.Add(info.Name);
+
+                    var val = info.GetValue(entity);
+                    if (val is string)
+                        fieldValues.Add($"'{val}'");
+                    if (val is DateTime dt)
+                        fieldValues.Add($"'{dt:yyyy-MM-dd HH:mm:ss}'");
+                    else if (val is bool b)
+                        fieldValues.Add(b ? 1 : 0);
+                    else if (val is null)
+                        fieldValues.Add("NULL");
+                    else
+                        fieldValues.Add(val);
+                }
+            }
+            sb.Append(string.Join(", ", fieldToInsert)).Append(") ").Append("VALUES ");
+            sb.Append("( ").Append(string.Join(", ",fieldValues)).Append("); ");
+            return sb.ToString();
         }
     }
 

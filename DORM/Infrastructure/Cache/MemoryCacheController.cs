@@ -14,7 +14,8 @@ namespace DORM.Infrastructure.Cache
         {
             if (CacheTable.ContainsKey(tableName))
                 CacheTable[tableName] = tableFields;   
-            CacheTable.Add(tableName, tableFields);
+            else
+                CacheTable.Add(tableName, tableFields);
         }
 
         public bool TryGet(string tableName, out List<TableField> tableFields)

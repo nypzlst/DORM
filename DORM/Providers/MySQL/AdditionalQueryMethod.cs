@@ -29,7 +29,7 @@ namespace DORM.Providers.MySQL
         internal static (string idFieldName, object idFieldValue) GetPrimaryKey<T>(List<TableField> table, T entity)
         {
             Type type = typeof(T);
-            string IdField = table.Single(x => x.IsPrimaryKey).FieldName;
+            string IdField = table.SingleOrDefault(x => x.IsPrimaryKey).FieldName;
             var IdPropertyVal = type.GetProperty(IdField).GetValue(entity);
             if (IdField is null || IdPropertyVal is null)
                 throw new ArgumentException("Property id or value cannot be null");

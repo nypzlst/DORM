@@ -15,7 +15,7 @@ namespace DORM.Infrastructure.Core
 
         string QueryConn;
 
-        Database(string queryConn)
+        public Database(string queryConn)
         {
             if (!File.Exists(queryConn))
                 throw new ArgumentException("Incorrect path");
@@ -23,7 +23,7 @@ namespace DORM.Infrastructure.Core
             QueryConn = queryConn;
         }
 
-        Database(string namedb, string server, string user, string password, int port = 3306)
+        public Database(string namedb, string server, string user, string password, int port = 3306)
         {
             NameDatabase = namedb;
             Server = server;
@@ -32,13 +32,13 @@ namespace DORM.Infrastructure.Core
             Port = port;
         }
 
-        string constructConnectionString()
+        internal string constructConnectionString()
         {
             return $"Server={Server};Database={NameDatabase};User ID={User};Password={Password};Port={Port};";
         }
 
 
-        async Task<bool> CheckConnection()
+        internal async Task<bool> CheckConnection()
         {
             if (string.IsNullOrEmpty(QueryConn))
                 QueryConn = constructConnectionString();
@@ -46,5 +46,8 @@ namespace DORM.Infrastructure.Core
 
             return await connection.PingAsync();
         }
+        //TODO: Додати зберігання готового connection string як поля після першої побудови
+        //TODO: ExecuteAsync(string sql) — для INSERT, UPDATE, DELETE, CREATE TABLE. Відкриває з'єднання → створює MySqlCommand → виконує → закриває.
+        //TODO: QueryAsync<T>(string sql) — для SELECT.Відкриває з'єднання → читає результат через MySqlDataReader → маппить рядки назад у List<T> → закриває.
     }
 }
