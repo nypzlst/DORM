@@ -41,11 +41,5 @@ namespace DORM.Providers.MySQL
             sb.Append(" WHERE ").Append(idField).Append(" = @").Append(idField);
         }
 
-        // INFO: безкорисний
-        internal static Dictionary<string, object> ParameterizedDictionary(string idField, object idValue)
-        {
-            Dictionary<string, object> result = new() { { idField, idValue } };
-            return result;
-        }
     }
 }

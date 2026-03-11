@@ -15,12 +15,16 @@ namespace DORM.Infrastructure.Core
 
         string QueryConn;
 
+        List<ParametrizationQuery> _pendingQueries;
+
+
         public Database(string queryConn)
         {
             if (!File.Exists(queryConn))
                 throw new ArgumentException("Incorrect path");
             // Check if file not null or other type
             QueryConn = queryConn;
+            _pendingQueries = new();
         }
 
         public Database(string namedb, string server, string user, string password, int port = 3306)
@@ -30,6 +34,7 @@ namespace DORM.Infrastructure.Core
             User = user;
             Password = password;
             Port = port;
+            _pendingQueries = new();
         }
 
         internal string constructConnectionString()
@@ -50,25 +55,38 @@ namespace DORM.Infrastructure.Core
         //TODO: ExecuteAsync(string sql) — для INSERT, UPDATE, DELETE, CREATE TABLE. Відкриває з'єднання → створює MySqlCommand → виконує → закриває.
         //TODO: QueryAsync<T>(string sql) — для SELECT.Відкриває з'єднання → читає результат через MySqlDataReader → маппить рядки назад у List<T> → закриває.
 
-
+        
        
 
-        int Querys(SqlParametrization query)
+        void SaveToDb()
         {
-            if(query is null) 
-                throw new ArgumentNullException(nameof(query));
-
             using var connection = new MySqlConnection(constructConnectionString());
             connection.Open();
-            using var command = new MySqlCommand(query.Sql, connection);
 
-            foreach(var param in query.Parameters)
+            using var batch = new MySqlBatch(connection);
+
+            foreach(var query in _pendingQueries)
             {
-                command.Parameters.AddWithValue(param.Key, param.Value);
+                var batchCommand = new MySqlBatchCommand(query.Sql);
+                foreach(var param in query.Parameters)
+                {
+                    batchCommand.Parameters.AddWithValue(param.Key,param.Value);
+                }
+
+                batch.BatchCommands.Add(batchCommand);
             }
 
-            return command.ExecuteNonQuery();
+            batch.ExecuteNonQuery();
+            _pendingQueries.Clear();
         }
+
+
+        void AddToQuery(ParametrizationQuery query)
+        {
+            if (query is null) throw new ArgumentNullException(nameof(query));
+            _pendingQueries.Add(query);
+        }
+
 
     }
 }

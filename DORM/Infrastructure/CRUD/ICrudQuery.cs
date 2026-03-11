@@ -10,8 +10,8 @@ namespace DORM.Infrastructure.CRUD
     {
         string CreateTable(T entity);
         string Select<TResult>(Expression<Func<T, TResult>> expression);
-        string Update(T entity);
-        SqlParametrization Delete(T entity);
-        string Insert(T entity);
+        ParametrizationQuery Update(T entity);
+        ParametrizationQuery Delete(T entity);
+        ParametrizationQuery Insert(T entity);
     }
 }

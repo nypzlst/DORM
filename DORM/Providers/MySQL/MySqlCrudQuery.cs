@@ -58,8 +58,8 @@ namespace DORM.Providers.MySQL{
             return sb.ToString();
 
         }
-        // select без умови, лише по колонкам 
-        // param no
+
+        // param no, make when WHERE is implement
         public string Select<TResult>(Expression<Func<T, TResult>> selector)
         {
             Type type = typeof(T);
@@ -88,8 +88,8 @@ namespace DORM.Providers.MySQL{
             // Expression Visitor для селекта з where
         }
 
-        // param no 
-        public string Update(T entity)
+
+        public ParametrizationQuery Update(T entity)
         {
             string TableName = AdditionalQueryMethod.GetNameTable<T>();
 
@@ -103,6 +103,8 @@ namespace DORM.Providers.MySQL{
             var sb = new StringBuilder();
             var changesList = new List<string>();
 
+            Dictionary<string, object> param = new();
+
             sb.Append("UPDATE ").Append(TableName).Append(" SET ");
             foreach(PropertyInfo info in typeof(T).GetProperties())
             {
@@ -110,31 +112,25 @@ namespace DORM.Providers.MySQL{
                 var field = Table.SingleOrDefault(x => x.FieldName == info.Name);
                 var fieldValue = info.GetValue(entity);
 
-                if (field is not null)
+                if (field is not null && !field.IsPrimaryKey)
                 {
-                    if (field.IsPrimaryKey) continue;
 
-                    if (fieldValue is string || fieldValue is DateTime)
-                        changesList.Add($"{field.FieldName} = '{fieldValue}'");
-                    else if (fieldValue is bool b)
-                        changesList.Add($"{field.FieldName} = {(b ? 1 : 0)}");
-                    else if (fieldValue is null)
-                        changesList.Add($"{field.FieldName} = NULL");
-                    else
-                        changesList.Add($"{field.FieldName} = {fieldValue}");
+                    changesList.Add($"{field.FieldName} = @{field.FieldName}");
+
+                    param.Add($"@{field.FieldName}", fieldValue);
                 }
             }
 
             sb.Append(string.Join(", ", changesList));
+            param.Add($"@{IdField}", IdPropertyVal);
 
             AdditionalQueryMethod.BuildWhereById(sb, IdField, IdPropertyVal);
 
-            return sb.ToString();
+            return new ParametrizationQuery(sb.ToString(), param);
 
         }
 
-        // param yes
-        public SqlParametrization Delete(T entity)
+        public ParametrizationQuery Delete(T entity)
         {
             string tableName = AdditionalQueryMethod.GetNameTable<T>();
 
@@ -147,12 +143,12 @@ namespace DORM.Providers.MySQL{
             AdditionalQueryMethod.BuildWhereById(sb, pkInfo.idFieldName, pkInfo.idFieldValue);
             Dictionary<string, object> param = new() { { pkInfo.idFieldName, pkInfo.idFieldValue } };
 
-            return new SqlParametrization(sb.ToString(), param);
+
+            return new ParametrizationQuery(sb.ToString(), param);
 
         }
 
-        // param no
-        public string Insert(T entity)
+        public ParametrizationQuery Insert(T entity)
         {
             StringBuilder sb = new StringBuilder();
             string tableName = AdditionalQueryMethod.GetNameTable<T>();
@@ -160,7 +156,8 @@ namespace DORM.Providers.MySQL{
             sb.Append("INSERT INTO ").Append(tableName).Append(" (");
             var table = AdditionalQueryMethod.GetCachedTable(tableName,_cache);
             List<string> fieldToInsert = new();
-            List<object> fieldValues = new();
+            List<object> fieldPlaceholder = new();
+            Dictionary<string,object> param = new();
 
             foreach (PropertyInfo info in typeof(T).GetProperties())
             {
@@ -168,23 +165,16 @@ namespace DORM.Providers.MySQL{
                 if (checkField != null && !checkField.IsPrimaryKey)
                 {
                     fieldToInsert.Add(info.Name);
+                    fieldPlaceholder.Add($"@{info.Name}");
 
                     var val = info.GetValue(entity);
-                    if (val is string)
-                        fieldValues.Add($"'{val}'");
-                    if (val is DateTime dt)
-                        fieldValues.Add($"'{dt:yyyy-MM-dd HH:mm:ss}'");
-                    else if (val is bool b)
-                        fieldValues.Add(b ? 1 : 0);
-                    else if (val is null)
-                        fieldValues.Add("NULL");
-                    else
-                        fieldValues.Add(val);
+
+                    param.Add($"@{info.Name}", val);
                 }
             }
             sb.Append(string.Join(", ", fieldToInsert)).Append(") ").Append("VALUES ");
-            sb.Append("( ").Append(string.Join(", ",fieldValues)).Append("); ");
-            return sb.ToString();
+            sb.Append("( ").Append(string.Join(", ",fieldPlaceholder)).Append("); ");
+            return new ParametrizationQuery(sb.ToString(), param);
         }
     }
 
