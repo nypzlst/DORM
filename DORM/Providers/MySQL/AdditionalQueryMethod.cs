@@ -38,11 +38,14 @@ namespace DORM.Providers.MySQL
 
         internal static void BuildWhereById(StringBuilder sb,string idField, object idValue)
         {
-            if (idValue is int)
-                sb.Append(" WHERE ").Append(idField).Append(" = ").Append(idValue);
-            else if (idValue is Guid)
-                sb.Append(" WHERE ").Append(idField).Append(" = ").Append($"'{idValue}'");
-            else throw new ArgumentException("Incorect value in id field");
+            sb.Append(" WHERE ").Append(idField).Append(" = @").Append(idField);
+        }
+
+        // INFO: безкорисний
+        internal static Dictionary<string, object> ParameterizedDictionary(string idField, object idValue)
+        {
+            Dictionary<string, object> result = new() { { idField, idValue } };
+            return result;
         }
     }
 }

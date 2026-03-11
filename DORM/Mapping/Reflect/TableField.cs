@@ -51,7 +51,14 @@ namespace DORM.Mapping.Reflect
             }
             if (DefaultValue != null)
             {
-                requestString += $" DEFAULT {DefaultValue}";
+                if (DefaultValue is string s)
+                    requestString += $" DEFAULT '{s.Replace("'", "''")}'";
+                else if (DefaultValue is DateTime dt)
+                    requestString += $" DEFAULT '{dt:yyyy-MM-dd HH:mm:ss}'";
+                else if (DefaultValue is bool b)
+                    requestString += $" DEFAULT {(b ? 1 : 0)}";
+                else
+                    requestString += $" DEFAULT {DefaultValue}";
             }
             else if (DefaultSqlValue != null)
             {

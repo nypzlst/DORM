@@ -49,5 +49,26 @@ namespace DORM.Infrastructure.Core
         //TODO: Додати зберігання готового connection string як поля після першої побудови
         //TODO: ExecuteAsync(string sql) — для INSERT, UPDATE, DELETE, CREATE TABLE. Відкриває з'єднання → створює MySqlCommand → виконує → закриває.
         //TODO: QueryAsync<T>(string sql) — для SELECT.Відкриває з'єднання → читає результат через MySqlDataReader → маппить рядки назад у List<T> → закриває.
+
+
+       
+
+        int Querys(SqlParametrization query)
+        {
+            if(query is null) 
+                throw new ArgumentNullException(nameof(query));
+
+            using var connection = new MySqlConnection(constructConnectionString());
+            connection.Open();
+            using var command = new MySqlCommand(query.Sql, connection);
+
+            foreach(var param in query.Parameters)
+            {
+                command.Parameters.AddWithValue(param.Key, param.Value);
+            }
+
+            return command.ExecuteNonQuery();
+        }
+
     }
 }

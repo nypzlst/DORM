@@ -59,6 +59,7 @@ namespace DORM.Providers.MySQL{
 
         }
         // select без умови, лише по колонкам 
+        // param no
         public string Select<TResult>(Expression<Func<T, TResult>> selector)
         {
             Type type = typeof(T);
@@ -87,7 +88,7 @@ namespace DORM.Providers.MySQL{
             // Expression Visitor для селекта з where
         }
 
-        
+        // param no 
         public string Update(T entity)
         {
             string TableName = AdditionalQueryMethod.GetNameTable<T>();
@@ -132,7 +133,8 @@ namespace DORM.Providers.MySQL{
 
         }
 
-        public string Delete(T entity)
+        // param yes
+        public SqlParametrization Delete(T entity)
         {
             string tableName = AdditionalQueryMethod.GetNameTable<T>();
 
@@ -143,10 +145,13 @@ namespace DORM.Providers.MySQL{
 
             sb.Append("DELETE FROM ").Append(tableName);
             AdditionalQueryMethod.BuildWhereById(sb, pkInfo.idFieldName, pkInfo.idFieldValue);
-            return sb.ToString();
+            Dictionary<string, object> param = new() { { pkInfo.idFieldName, pkInfo.idFieldValue } };
+
+            return new SqlParametrization(sb.ToString(), param);
 
         }
 
+        // param no
         public string Insert(T entity)
         {
             StringBuilder sb = new StringBuilder();

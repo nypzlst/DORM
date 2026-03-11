@@ -3,7 +3,7 @@ using System.Reflection;
 
 namespace DORM.Attribute
 {
-
+    // WARN: Not working
     [AttributeUsage(AttributeTargets.Property)]
     public class FKAttribute : System.Attribute, IApplyAttribute
     {
