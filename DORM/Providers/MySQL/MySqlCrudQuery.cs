@@ -126,7 +126,7 @@ namespace DORM.Providers.MySQL{
 
             AdditionalQueryMethod.BuildWhereById(sb, IdField, IdPropertyVal);
 
-            return new ParametrizationQuery(sb.ToString(), param);
+            return new ParametrizationQuery(sb.ToString(), param, TypeQuery.update);
 
         }
 
@@ -144,7 +144,7 @@ namespace DORM.Providers.MySQL{
             Dictionary<string, object> param = new() { { pkInfo.idFieldName, pkInfo.idFieldValue } };
 
 
-            return new ParametrizationQuery(sb.ToString(), param);
+            return new ParametrizationQuery(sb.ToString(), param, TypeQuery.delete);
 
         }
 
@@ -174,7 +174,7 @@ namespace DORM.Providers.MySQL{
             }
             sb.Append(string.Join(", ", fieldToInsert)).Append(") ").Append("VALUES ");
             sb.Append("( ").Append(string.Join(", ",fieldPlaceholder)).Append("); ");
-            return new ParametrizationQuery(sb.ToString(), param);
+            return new ParametrizationQuery(sb.ToString(), param, TypeQuery.insert);
         }
     }
 

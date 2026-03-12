@@ -56,7 +56,33 @@ namespace DORM.Infrastructure.Core
         //TODO: QueryAsync<T>(string sql) — для SELECT.Відкриває з'єднання → читає результат через MySqlDataReader → маппить рядки назад у List<T> → закриває.
 
         
-       
+       List<T> SelectQuery<T>(string query) where T : class
+        {
+            using var connection = new MySqlConnection(constructConnectionString());
+            connection.Open();
+
+            using var command = new MySqlCommand(query, connection);
+            List<T> tableSelect = new();
+
+            using(MySqlDataReader reader = command.ExecuteReader())
+            {
+                // TODO: add try/catch
+                while (reader.Read())
+                {
+                    var temp = Activator.CreateInstance<T>();
+                    Type type = typeof(T);
+                    foreach(var property in type.GetProperties())
+                    {
+                        if(reader[property.Name] != DBNull.Value)
+                        {
+                            property.SetValue(temp, reader[property.Name]);
+                        }
+                    }
+                    tableSelect.Add(temp);
+                }
+            }
+            return tableSelect;
+        }
 
         void SaveToDb()
         {

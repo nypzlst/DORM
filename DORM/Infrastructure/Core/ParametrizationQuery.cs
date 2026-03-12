@@ -9,10 +9,21 @@ namespace DORM.Infrastructure.Core
         internal string Sql { get; set; }
         internal Dictionary<string,object> Parameters { get; set; }
 
-        public ParametrizationQuery(string Query, Dictionary<string, object> parameters)
+        internal TypeQuery Type { get; set; }
+
+        public ParametrizationQuery(string Query, Dictionary<string, object> parameters, TypeQuery type)
         {
             Sql = Query;
             Parameters = parameters ?? new Dictionary<string,object>();
+            Type = type;
         }
+    }
+
+    public enum TypeQuery
+    {
+        insert,
+        update, 
+        delete,
+        createTable
     }
 }
