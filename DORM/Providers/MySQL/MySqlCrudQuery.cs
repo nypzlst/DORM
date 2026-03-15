@@ -1,4 +1,4 @@
-﻿using DORM.Attribute;
+using DORM.Attribute;
 using DORM.Infrastructure.Cache;
 using DORM.Infrastructure.Core;
 using DORM.Infrastructure.CRUD;
@@ -14,7 +14,7 @@ using System.Text.RegularExpressions;
 
 namespace DORM.Providers.MySQL{
 
-    public class MySqlCrudQuery<T> : ICrudQuery<T> where T : class
+    public class MySqlCrudQuery : ICrudQuery
     {
         private readonly ICacheController _cache;
 
@@ -23,7 +23,7 @@ namespace DORM.Providers.MySQL{
             _cache = cache;
         }
 
-        public string CreateTable(T entity) 
+        public string CreateTable<T>(T entity) where T : class
         {
             var sb = new StringBuilder();
             Type type = typeof(T);
@@ -60,7 +60,7 @@ namespace DORM.Providers.MySQL{
         }
 
         // param no, make when WHERE is implement
-        public string Select<TResult>(Expression<Func<T, TResult>> selector)
+        public string Select<T, TResult>(Expression<Func<T, TResult>> selector) where T : class
         {
             Type type = typeof(T);
             string NameTable = AdditionalQueryMethod.GetNameTable<T>();
@@ -89,7 +89,7 @@ namespace DORM.Providers.MySQL{
         }
 
 
-        public ParametrizationQuery Update(T entity)
+        public ParametrizationQuery Update<T>(T entity) where T : class
         {
             string TableName = AdditionalQueryMethod.GetNameTable<T>();
 
@@ -130,7 +130,7 @@ namespace DORM.Providers.MySQL{
 
         }
 
-        public ParametrizationQuery Delete(T entity)
+        public ParametrizationQuery Delete<T>(T entity) where T : class
         {
             string tableName = AdditionalQueryMethod.GetNameTable<T>();
 
@@ -148,7 +148,7 @@ namespace DORM.Providers.MySQL{
 
         }
 
-        public ParametrizationQuery Insert(T entity)
+        public ParametrizationQuery Insert<T>(T entity) where T : class
         {
             StringBuilder sb = new StringBuilder();
             string tableName = AdditionalQueryMethod.GetNameTable<T>();

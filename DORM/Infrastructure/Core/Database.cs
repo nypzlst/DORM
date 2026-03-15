@@ -1,7 +1,8 @@
-﻿using System;
+﻿using DORM.Exceptions;
+using MySqlConnector;
+using System;
 using System.Collections.Generic;
 using System.Text;
-using MySqlConnector;
 
 namespace DORM.Infrastructure.Core
 {
@@ -23,7 +24,7 @@ namespace DORM.Infrastructure.Core
             if (!File.Exists(queryConn))
                 throw new ArgumentException("Incorrect path");
             // Check if file not null or other type
-            QueryConn = queryConn;
+            QueryConn = File.ReadAllText(queryConn).Trim();
             _pendingQueries = new();
         }
 
@@ -43,20 +44,21 @@ namespace DORM.Infrastructure.Core
         }
 
 
-        internal async Task<bool> CheckConnection()
+        internal async Task CheckConnection()
         {
             if (string.IsNullOrEmpty(QueryConn))
                 QueryConn = constructConnectionString();
             await using var connection = new MySqlConnection(QueryConn);
 
-            return await connection.PingAsync();
+            if (!await connection.PingAsync())
+                throw new ConnectionException("Unable to connect to the database.");
         }
         //TODO: Додати зберігання готового connection string як поля після першої побудови
         //TODO: ExecuteAsync(string sql) — для INSERT, UPDATE, DELETE, CREATE TABLE. Відкриває з'єднання → створює MySqlCommand → виконує → закриває.
         //TODO: QueryAsync<T>(string sql) — для SELECT.Відкриває з'єднання → читає результат через MySqlDataReader → маппить рядки назад у List<T> → закриває.
 
         
-       List<T> SelectQuery<T>(string query) where T : class
+       public List<T> SelectQuery<T>(string query) where T : class
         {
             using var connection = new MySqlConnection(constructConnectionString());
             connection.Open();
@@ -84,7 +86,7 @@ namespace DORM.Infrastructure.Core
             return tableSelect;
         }
 
-        void SaveToDb()
+        public void SaveToDb()
         {
             using var connection = new MySqlConnection(constructConnectionString());
             connection.Open();
@@ -107,12 +109,14 @@ namespace DORM.Infrastructure.Core
         }
 
 
-        void AddToQuery(ParametrizationQuery query)
+        internal void AddToQuery(ParametrizationQuery query)
         {
             if (query is null) throw new ArgumentNullException(nameof(query));
             _pendingQueries.Add(query);
         }
 
+
+        
 
     }
 }
