@@ -395,3 +395,5 @@ FodyWeavers.xsd
 /.editorconfig
 /toc.yml
 /index.md
+/TestORM
+/TestORM/Program.cs

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace DORM.Infrastructure.Cache
 {
-    internal class MemoryCacheController : ICacheController
+    public class MemoryCacheController : ICacheController
     {
         private Dictionary<string, List<TableField>> CacheTable { get; set; } = new();
 

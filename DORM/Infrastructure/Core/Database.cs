@@ -1,4 +1,4 @@
-﻿using DORM.Exceptions;
+using DORM.Exceptions;
 using MySqlConnector;
 using System;
 using System.Collections.Generic;
@@ -23,8 +23,13 @@ namespace DORM.Infrastructure.Core
         {
             if (!File.Exists(queryConn))
                 throw new ArgumentException("Incorrect path");
-            // Check if file not null or other type
             QueryConn = File.ReadAllText(queryConn).Trim();
+            var builder = new MySqlConnectionStringBuilder(QueryConn);
+            NameDatabase = builder.Database;
+            Server = builder.Server;
+            User = builder.UserID;
+            Password = builder.Password;
+            Port = (int)builder.Port;
             _pendingQueries = new();
         }
 
@@ -48,10 +53,15 @@ namespace DORM.Infrastructure.Core
         {
             if (string.IsNullOrEmpty(QueryConn))
                 QueryConn = constructConnectionString();
-            await using var connection = new MySqlConnection(QueryConn);
-
-            if (!await connection.PingAsync())
-                throw new ConnectionException("Unable to connect to the database.");
+            try
+            {
+                await using var connection = new MySqlConnection(QueryConn);
+                await connection.OpenAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new ConnectionException($"Unable to connect to the database: {ex.Message}");
+            }
         }
         //TODO: Додати зберігання готового connection string як поля після першої побудови
         //TODO: ExecuteAsync(string sql) — для INSERT, UPDATE, DELETE, CREATE TABLE. Відкриває з'єднання → створює MySqlCommand → виконує → закриває.
@@ -88,6 +98,8 @@ namespace DORM.Infrastructure.Core
 
         public void SaveToDb()
         {
+            if (_pendingQueries.Count == 0) return;
+
             using var connection = new MySqlConnection(constructConnectionString());
             connection.Open();
 
@@ -113,6 +125,16 @@ namespace DORM.Infrastructure.Core
         {
             if (query is null) throw new ArgumentNullException(nameof(query));
             _pendingQueries.Add(query);
+        }
+
+        public void ExecuteRaw(string sql)
+        {
+            if (string.IsNullOrEmpty(QueryConn))
+                QueryConn = constructConnectionString();
+            using var connection = new MySqlConnection(QueryConn);
+            connection.Open();
+            using var command = new MySqlCommand(sql, connection);
+            command.ExecuteNonQuery();
         }
 
 
