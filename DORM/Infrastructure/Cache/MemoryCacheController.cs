@@ -1,4 +1,5 @@
-﻿using DORM.Mapping.Reflect;
+﻿using DORM.Mapping;
+using DORM.Mapping.Reflect;
 using System;
 using System.Collections.Generic;
 using System.Text;

@@ -1,6 +1,7 @@
 ﻿using DORM.Attribute;
 using DORM.Infrastructure.Cache;
 using DORM.Infrastructure.Core;
+using DORM.Mapping;
 using DORM.Mapping.Reflect;
 using System;
 using System.Collections.Generic;
@@ -19,11 +20,14 @@ namespace DORM.Providers.MySQL
             return NameTable;
         }
 
-        internal static List<TableField> GetCachedTable(string tableName, ICacheController _cache)
+        internal static List<TableField> GetCachedTable<T>(string tableName, ICacheController _cache) where T : class
         {
-            if (!_cache.TryGet(tableName, out List<TableField> table))
-                throw new ArgumentException("Don`t cached table");
-            return table;
+            if (_cache.TryGet(tableName, out List<TableField> table))
+                return table;
+
+            var fileds = MappingClass.MapClass<T>();
+            _cache.Store(tableName, fileds);
+            return fileds;
         }
 
         internal static (string idFieldName, object idFieldValue) GetPrimaryKey<T>(List<TableField> table, T entity)

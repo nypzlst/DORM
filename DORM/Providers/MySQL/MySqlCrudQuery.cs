@@ -64,11 +64,8 @@ namespace DORM.Providers.MySQL{
         {
             Type type = typeof(T);
             string NameTable = AdditionalQueryMethod.GetNameTable<T>();
-            List<TableField> table;
-
-            if (!_cache.TryGet(NameTable, out table))
-                throw new ArgumentException("Don`t cached table");
-            // дописати виклик кешування таблиці якщо її не має в кеші
+            List<TableField> table = AdditionalQueryMethod.GetCachedTable<T>(NameTable, _cache);
+            
 
             IEnumerable<string> reqFields;
 
@@ -93,7 +90,7 @@ namespace DORM.Providers.MySQL{
         {
             string TableName = AdditionalQueryMethod.GetNameTable<T>();
 
-            List<TableField> Table = AdditionalQueryMethod.GetCachedTable(TableName,_cache);
+            List<TableField> Table = AdditionalQueryMethod.GetCachedTable<T>(TableName,_cache);
 
             var pkInfo = AdditionalQueryMethod.GetPrimaryKey(Table,entity);
 
@@ -134,7 +131,7 @@ namespace DORM.Providers.MySQL{
         {
             string tableName = AdditionalQueryMethod.GetNameTable<T>();
 
-            var table = AdditionalQueryMethod.GetCachedTable(tableName, _cache);
+            var table = AdditionalQueryMethod.GetCachedTable<T>(tableName, _cache);
             var pkInfo = AdditionalQueryMethod.GetPrimaryKey(table, entity);
 
             var sb = new StringBuilder();
@@ -154,7 +151,7 @@ namespace DORM.Providers.MySQL{
             string tableName = AdditionalQueryMethod.GetNameTable<T>();
 
             sb.Append("INSERT INTO ").Append(tableName).Append(" (");
-            var table = AdditionalQueryMethod.GetCachedTable(tableName,_cache);
+            var table = AdditionalQueryMethod.GetCachedTable<T>(tableName,_cache);
             List<string> fieldToInsert = new();
             List<object> fieldPlaceholder = new();
             Dictionary<string,object> param = new();
