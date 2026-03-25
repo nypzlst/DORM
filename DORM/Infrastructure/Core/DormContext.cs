@@ -15,10 +15,10 @@ namespace DORM.Infrastructure.Core
         private readonly ICacheController _cache;
         private readonly ICrudQuery _crudQuery;
 
-        public DormContext(Database db, ICrudQuery crudQuery)
+        public DormContext(Database db, ICrudQuery crudQuery, ICacheController cache)
         {
             _db = db;
-            _cache = new MemoryCacheController();
+            _cache = cache;
             _crudQuery = crudQuery;
         }
 

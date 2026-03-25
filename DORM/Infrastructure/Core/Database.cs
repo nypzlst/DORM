@@ -1,7 +1,9 @@
+using DORM.Attribute;
 using DORM.Exceptions;
 using MySqlConnector;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
 
 namespace DORM.Infrastructure.Core
@@ -83,9 +85,10 @@ namespace DORM.Infrastructure.Core
                 {
                     var temp = Activator.CreateInstance<T>();
                     Type type = typeof(T);
+
                     foreach(var property in type.GetProperties())
                     {
-                        if(reader[property.Name] != DBNull.Value)
+                        if (reader[property.Name] != DBNull.Value)
                         {
                             property.SetValue(temp, reader[property.Name]);
                         }

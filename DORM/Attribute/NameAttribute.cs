@@ -28,7 +28,7 @@ namespace DORM.Attribute
 
         public void Apply(TableField tField, PropertyInfo info)
         {
-            tField.FieldName = info.Name ?? Name;
+            tField.FieldName =  Name ?? info.Name ;
         }
     }
 }

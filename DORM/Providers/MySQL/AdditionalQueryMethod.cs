@@ -33,11 +33,15 @@ namespace DORM.Providers.MySQL
         internal static (string idFieldName, object idFieldValue) GetPrimaryKey<T>(List<TableField> table, T entity)
         {
             Type type = typeof(T);
-            string IdField = table.SingleOrDefault(x => x.IsPrimaryKey).FieldName;
-            var IdPropertyVal = type.GetProperty(IdField).GetValue(entity);
-            if (IdField is null || IdPropertyVal is null)
-                throw new ArgumentException("Property id or value cannot be null");
-            return (IdField, IdPropertyVal);
+            var pkField = table.SingleOrDefault(x => x.IsPrimaryKey);
+            if (pkField is null)
+                throw new ArgumentException("Primary key field not found");
+
+            var IdPropertyVal = type.GetProperty(pkField.FieldName)?.GetValue(entity);
+            if (IdPropertyVal is null)
+                throw new ArgumentException("Primary key value cannot be null");
+
+            return (pkField.FieldName, IdPropertyVal);
         }
 
         internal static void BuildWhereById(StringBuilder sb,string idField, object idValue)

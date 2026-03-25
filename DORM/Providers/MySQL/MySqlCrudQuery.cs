@@ -114,7 +114,7 @@ namespace DORM.Providers.MySQL{
 
                     changesList.Add($"{field.FieldName} = @{field.FieldName}");
 
-                    param.Add($"@{field.FieldName}", fieldValue);
+                    param.Add($"@{field.FieldName}", fieldValue ?? DBNull.Value);
                 }
             }
 
@@ -138,7 +138,7 @@ namespace DORM.Providers.MySQL{
 
             sb.Append("DELETE FROM ").Append(tableName);
             AdditionalQueryMethod.BuildWhereById(sb, pkInfo.idFieldName, pkInfo.idFieldValue);
-            Dictionary<string, object> param = new() { { pkInfo.idFieldName, pkInfo.idFieldValue } };
+            Dictionary<string, object> param = new() { { $"@{pkInfo.idFieldName}", pkInfo.idFieldValue } };
 
 
             return new ParametrizationQuery(sb.ToString(), param, TypeQuery.delete);
@@ -166,7 +166,7 @@ namespace DORM.Providers.MySQL{
 
                     var val = info.GetValue(entity);
 
-                    param.Add($"@{info.Name}", val);
+                    param.Add($"@{info.Name}", val ?? DBNull.Value);
                 }
             }
             sb.Append(string.Join(", ", fieldToInsert)).Append(") ").Append("VALUES ");
