@@ -106,21 +106,33 @@ namespace DORM.Infrastructure.Core
             using var connection = new MySqlConnection(constructConnectionString());
             connection.Open();
 
-            using var batch = new MySqlBatch(connection);
+            var bt = connection.BeginTransaction();
 
-            foreach(var query in _pendingQueries)
+            try
             {
-                var batchCommand = new MySqlBatchCommand(query.Sql);
-                foreach(var param in query.Parameters)
+                using var batch = new MySqlBatch(connection, bt);
+                foreach (var query in _pendingQueries)
                 {
-                    batchCommand.Parameters.AddWithValue(param.Key,param.Value);
+                    var batchCommand = new MySqlBatchCommand(query.Sql);
+                    foreach (var param in query.Parameters)
+                    {
+                        batchCommand.Parameters.AddWithValue(param.Key, param.Value);
+                    }
+
+                    batch.BatchCommands.Add(batchCommand);
                 }
 
-                batch.BatchCommands.Add(batchCommand);
-            }
+                var affected = batch.ExecuteNonQuery();
+                bt.Commit();
+                _pendingQueries.Clear();
 
-            batch.ExecuteNonQuery();
-            _pendingQueries.Clear();
+            }
+            catch(Exception ex)
+            {
+                bt.Rollback();
+                throw;
+            }
+            
         }
 
 
