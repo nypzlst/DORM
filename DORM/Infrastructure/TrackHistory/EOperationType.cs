@@ -4,7 +4,7 @@ using System.Text;
 
 namespace DORM.Infrastructure.TrackHistory
 {
-    enum EOperationType
+    public enum EOperationType
     {
         Insert,
         Update,

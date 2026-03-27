@@ -6,5 +6,12 @@ namespace DORM.Infrastructure.TrackHistory
 {
     public class TrackChanges
     {
+        private List<Operation> _operations;
+
+        public void TrackInsert()
+        {
+
+        }
+
     }
 }

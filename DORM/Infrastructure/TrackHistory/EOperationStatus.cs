@@ -1,6 +1,6 @@
 ﻿namespace DORM.Infrastructure.TrackHistory
 {
-    enum EOperationStatus
+    public enum EOperationStatus
     {
         Pending,
         Commited,
