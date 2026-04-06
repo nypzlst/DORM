@@ -14,7 +14,7 @@ namespace DORM.Infrastructure.TrackHistory
 
         public object? OldValue {  get; set; }
         public object? NewValue { get; set; }
-        public int ChangedFields { get; set; }
+        //public int ChangedFields { get; set; } create soon
 
         public string? EntityName { get; set; }
         public string? EntityKey { get; set; }

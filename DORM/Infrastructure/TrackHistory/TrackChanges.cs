@@ -8,9 +8,11 @@ namespace DORM.Infrastructure.TrackHistory
     {
         private List<Operation> _operations = [];
 
+        public IReadOnlyList<Operation> Operations => _operations.AsReadOnly();
+
         public void TrackInsert(object insertValue, string tableName, string tableField)
         {
-            if(insertValue is null) throw new ArgumentException(nameof(insertValue));
+            if(insertValue is null) throw new ArgumentNullException(nameof(insertValue));
             if (string.IsNullOrWhiteSpace(tableName)) throw new ArgumentException("Entity name is required.");
             if (string.IsNullOrWhiteSpace(tableField)) throw new ArgumentException("Entity key is required.");
 
@@ -24,7 +26,7 @@ namespace DORM.Infrastructure.TrackHistory
 
         public void TrackDelete(object deleteValue, string tableName, string tableField)
         {
-            if (deleteValue is null) throw new ArgumentException(nameof(deleteValue));
+            if (deleteValue is null) throw new ArgumentNullException(nameof(deleteValue));
             if (string.IsNullOrWhiteSpace(tableName)) throw new ArgumentException("Entity name is required.");
             if (string.IsNullOrWhiteSpace(tableField)) throw new ArgumentException("Entity key is required.");
 
@@ -38,8 +40,8 @@ namespace DORM.Infrastructure.TrackHistory
 
         public void TrackUpdate(object updateValue, object oldValue ,string tableName, string tableField)
         {
-            if (updateValue is null) throw new ArgumentException(nameof(updateValue));
-            if (oldValue is null) throw new ArgumentException(nameof(oldValue));
+            if (updateValue is null) throw new ArgumentNullException(nameof(updateValue));
+            if (oldValue is null) throw new ArgumentNullException(nameof(oldValue));
             if (string.IsNullOrWhiteSpace(tableName)) throw new ArgumentException("Entity name is required.");
             if (string.IsNullOrWhiteSpace(tableField)) throw new ArgumentException("Entity key is required.");
 
@@ -56,6 +58,10 @@ namespace DORM.Infrastructure.TrackHistory
             if(findOper is not null)
             {
                 findOper.Status = status;
+            }
+            else
+            {
+                throw new InvalidOperationException("Operation not found");
             }
         }
         
