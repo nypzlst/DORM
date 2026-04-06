@@ -76,10 +76,18 @@ namespace DORM.Infrastructure.Core
             {
                 await _db.CheckConnection();
                 _db.SaveToDb();
+
+                _trackChanges.MarkCommitted();
             }
             catch (ConnectionException ex)
             {
                 Console.WriteLine($"[DORM] Connection error: {ex.Message}");
+                _trackChanges.MarkFailed();
+                throw;
+            }
+            catch
+            {
+                _trackChanges.MarkFailed();
                 throw;
             }
         }
@@ -99,7 +107,7 @@ namespace DORM.Infrastructure.Core
         {
             var table = MappingClass.MapClass<T>();
             var pk = table.SingleOrDefault(f => f.IsPrimaryKey);
-            return pk?.FieldName ?? "Id";
+            return pk?.FieldName ?? "Id"; // тут змінити якщо хочу читати дані поля а не знати ключ
         }
 
         #endregion

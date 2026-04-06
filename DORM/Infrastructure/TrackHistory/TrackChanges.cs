@@ -70,7 +70,7 @@ namespace DORM.Infrastructure.TrackHistory
                 x.Status = status;
         }
 
-        public void MarkCommited() => MarkAll(EOperationStatus.Committed);
+        public void MarkCommitted() => MarkAll(EOperationStatus.Committed);
 
         public void MarkFailed() => MarkAll(EOperationStatus.Failed);
     }

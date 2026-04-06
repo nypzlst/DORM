@@ -12,22 +12,21 @@ namespace DORM.Infrastructure.TrackHistory
         public EOperationStatus Status { get; set; }
         public DateTime CreatedAt { get; init; }
 
-        public object? OldValue {  get; set; }
-        public object? NewValue { get; set; }
+        public object? Value { get; set; }
         //public int ChangedFields { get; set; } create soon
 
         public string? EntityName { get; set; }
         public string? EntityKey { get; set; }
 
         
-        public Operation(EOperationType type, object newV, string entityName, string entityKey)
+        public Operation(EOperationType type, object value, string entityName, string entityKey)
         {
             Id = Guid.NewGuid();
             CreatedAt= DateTime.UtcNow;
             Status = EOperationStatus.Pending;
 
             TypeOperation = type;
-            NewValue= newV;
+            Value= value;
             EntityName = entityName;
             EntityKey = entityKey;
         }
