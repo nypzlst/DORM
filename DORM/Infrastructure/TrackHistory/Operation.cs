@@ -6,11 +6,11 @@ namespace DORM.Infrastructure.TrackHistory
 {
     public class Operation
     {
-        public Guid Id { get; set; } 
+        public Guid Id { get; init; } 
         
-        public EOperationType TypeOperation { get; set; }
+        public EOperationType TypeOperation { get; init; }
         public EOperationStatus Status { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public DateTime CreatedAt { get; init; }
 
         public object? OldValue {  get; set; }
         public object? NewValue { get; set; }

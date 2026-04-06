@@ -6,7 +6,7 @@ namespace DORM.Infrastructure.TrackHistory
 {
     public class TrackChanges
     {
-        private List<Operation> _operations;
+        private List<Operation> _operations = [];
 
         public void TrackInsert(object insertValue, string tableName, string tableField)
         {
@@ -22,12 +22,37 @@ namespace DORM.Infrastructure.TrackHistory
         }
 
 
-
-        public void SetStatus(Operation operation, EOperationStatus status)
+        public void TrackDelete(object deleteValue, string tableName, string tableField)
         {
-            if (operation is null) throw new ArgumentNullException(nameof(operation));
+            if (deleteValue is null) throw new ArgumentException(nameof(deleteValue));
+            if (string.IsNullOrWhiteSpace(tableName)) throw new ArgumentException("Entity name is required.");
+            if (string.IsNullOrWhiteSpace(tableField)) throw new ArgumentException("Entity key is required.");
 
-            var findOper = _operations.FirstOrDefault(x => operation.Id == x.Id);
+
+            var DeleteOperation = new Operation(EOperationType.Delete,
+                deleteValue, tableName, tableField);
+
+            _operations.Add(DeleteOperation);
+        }
+
+
+        public void TrackUpdate(object updateValue, object oldValue ,string tableName, string tableField)
+        {
+            if (updateValue is null) throw new ArgumentException(nameof(updateValue));
+            if (oldValue is null) throw new ArgumentException(nameof(oldValue));
+            if (string.IsNullOrWhiteSpace(tableName)) throw new ArgumentException("Entity name is required.");
+            if (string.IsNullOrWhiteSpace(tableField)) throw new ArgumentException("Entity key is required.");
+
+            var UpdateOperation = new Operation(EOperationType.Update, oldValue, updateValue, tableName, tableField);
+
+            _operations.Add(UpdateOperation);
+        }
+
+
+        public void SetStatus(Guid id, EOperationStatus status)
+        {
+
+            var findOper = _operations.FirstOrDefault(x => id == x.Id);
             if(findOper is not null)
             {
                 findOper.Status = status;
