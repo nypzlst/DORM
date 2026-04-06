@@ -4,7 +4,7 @@ using System.Text;
 
 namespace DORM.Infrastructure.TrackHistory
 {
-    internal class Operation
+    public class Operation
     {
         public Guid Id { get; set; } 
         

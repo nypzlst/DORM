@@ -3,7 +3,7 @@
     public enum EOperationStatus
     {
         Pending,
-        Commited,
+        Committed,
         Failed,
         Canceled
     }
