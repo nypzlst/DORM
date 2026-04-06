@@ -75,13 +75,24 @@ namespace DORM.Providers.MySQL{
                 reqFields = new[] { member.Member.Name };
             else
                 throw new ArgumentException("Incorect anonyms type");
-            
-            var fields = reqFields.Where(x => table.Any(t => t.FieldName == x));
 
-            if (!fields.Any())
+            var selectParts = new List<string>();
+            // need test`s
+            foreach (var propName in reqFields)
+            {
+                var prop = type.GetProperty(propName)
+                    ?? throw new ArgumentException($"Property '{propName}' not found");
+                var nameAttr = prop.GetCustomAttribute<NameAttribute>();
+                var columnName = UniversalMethod.SanitizeName(nameAttr?.Name ?? prop.Name);
+                if (!table.Any(t => t.FieldName == columnName))
+                    throw new ArgumentException($"Field '{columnName}' not found");
+                selectParts.Add($"{columnName} AS {propName}");
+            }
+
+            if (!selectParts.Any())
                 throw new ArgumentException("No one fields find");
 
-            return $"SELECT {string.Join(", ", fields)} FROM {NameTable}";
+            return $"SELECT {string.Join(", ", selectParts)} FROM {NameTable}";
             // Expression Visitor для селекта з where
         }
 
@@ -105,8 +116,8 @@ namespace DORM.Providers.MySQL{
             sb.Append("UPDATE ").Append(TableName).Append(" SET ");
             foreach(PropertyInfo info in typeof(T).GetProperties())
             {
-                
-                var field = Table.SingleOrDefault(x => x.FieldName == info.Name);
+                var columnName = GetColumnName(info);
+                var field = Table.SingleOrDefault(x => x.FieldName == columnName);
                 var fieldValue = info.GetValue(entity);
 
                 if (field is not null && !field.IsPrimaryKey)
@@ -158,7 +169,8 @@ namespace DORM.Providers.MySQL{
 
             foreach (PropertyInfo info in typeof(T).GetProperties())
             {
-                var checkField = table.SingleOrDefault(x => x.FieldName == info.Name);
+                var columnName = GetColumnName(info);
+                var checkField = table.SingleOrDefault(x => x.FieldName == columnName);
                 if (checkField != null && !checkField.IsPrimaryKey)
                 {
                     fieldToInsert.Add(info.Name);
@@ -173,8 +185,17 @@ namespace DORM.Providers.MySQL{
             sb.Append("( ").Append(string.Join(", ",fieldPlaceholder)).Append("); ");
             return new ParametrizationQuery(sb.ToString(), param, TypeQuery.insert);
         }
+
+        #region system methods
+
+        private static string GetColumnName(PropertyInfo property)
+        {
+            var nameAttr = property.GetCustomAttribute<NameAttribute>();
+            return UniversalMethod.SanitizeName(nameAttr?.Name ?? property.Name);
+        }
+
+        #endregion
+
+
     }
-
-
-
 }

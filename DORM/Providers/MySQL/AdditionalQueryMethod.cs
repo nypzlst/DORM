@@ -5,6 +5,7 @@ using DORM.Mapping;
 using DORM.Mapping.Reflect;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
 
@@ -33,11 +34,21 @@ namespace DORM.Providers.MySQL
         internal static (string idFieldName, object idFieldValue) GetPrimaryKey<T>(List<TableField> table, T entity)
         {
             Type type = typeof(T);
+
             var pkField = table.SingleOrDefault(x => x.IsPrimaryKey);
             if (pkField is null)
                 throw new ArgumentException("Primary key field not found");
 
-            var IdPropertyVal = type.GetProperty(pkField.FieldName)?.GetValue(entity);
+            var props = type.GetProperties();
+            var pkProperty = props.SingleOrDefault(p =>
+            {
+                var nameAttr = p.GetCustomAttribute<NameAttribute>();
+                var column = UniversalMethod.SanitizeName(nameAttr?.Name ?? p.Name);
+                return column == pkField.FieldName;
+            });
+            if (pkProperty is null)
+                throw new ArgumentException("Primary key property not found");
+            var IdPropertyVal = pkProperty.GetValue(entity);
             if (IdPropertyVal is null)
                 throw new ArgumentException("Primary key value cannot be null");
 
