@@ -20,20 +20,6 @@ namespace DORM.Infrastructure.TrackHistory
         public string? EntityKey { get; set; }
 
         
-
-        public Operation(EOperationType type, object oldV, object newV, string entityName, string entityKey)
-        {
-            Id = Guid.NewGuid();
-            CreatedAt = DateTime.UtcNow;
-            Status = EOperationStatus.Pending;
-
-            TypeOperation = type;
-            OldValue = oldV;
-            NewValue = newV;
-            EntityName = entityName;
-            EntityKey = entityKey;
-        }
-
         public Operation(EOperationType type, object newV, string entityName, string entityKey)
         {
             Id = Guid.NewGuid();

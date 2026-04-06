@@ -65,6 +65,7 @@ namespace DORM.Infrastructure.Core
                 throw new ConnectionException($"Unable to connect to the database: {ex.Message}");
             }
         }
+
         //TODO: Додати зберігання готового connection string як поля після першої побудови
         //TODO: ExecuteAsync(string sql) — для INSERT, UPDATE, DELETE, CREATE TABLE. Відкриває з'єднання → створює MySqlCommand → виконує → закриває.
         //TODO: QueryAsync<T>(string sql) — для SELECT.Відкриває з'єднання → читає результат через MySqlDataReader → маппить рядки назад у List<T> → закриває.
