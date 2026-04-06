@@ -13,11 +13,6 @@ namespace DORM.Attribute
             DefaultValue = value;
         }
 
-        public DefaultAttribute(string value)
-        {
-            DefaultValue = $"'{value.Replace("'", "''")}'"; ;
-        }
-
         public void Apply(TableField tField, PropertyInfo info)
         {
             tField.DefaultValue = DefaultValue;
