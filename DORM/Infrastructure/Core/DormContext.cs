@@ -2,31 +2,42 @@
 using DORM.Exceptions;
 using DORM.Infrastructure.Cache;
 using DORM.Infrastructure.CRUD;
+using DORM.Infrastructure.Logger;
 using DORM.Infrastructure.TrackHistory;
 using DORM.Mapping;
-using System;
-using System.Collections.Generic;
+using Microsoft.Extensions.Logging.Abstractions;
 using System.Linq.Expressions;
-using System.Text;
+
 
 namespace DORM.Infrastructure.Core
 {
-    public class DormContext
+    public class DormContext : IDisposable
     {
 
         private readonly Database _db;
         private readonly ICacheController _cache;
         private readonly ICrudQuery _crudQuery;
         private readonly TrackChanges _trackChanges;
+        private readonly ILogger _logger;
 
         public DormContext(Database db, ICrudQuery crudQuery, ICacheController cache)
         {
             _db = db;
-            _cache = cache;
+            _cache = new MemoryCacheController();
             _crudQuery = crudQuery;
             _trackChanges = new TrackChanges();
-        }
+            try
+            {
+                _logger = new JsonLogger();
+            }
+            catch
+            {
+                _logger = new BlankLogger();
+            }
 
+            _trackChanges.OnOperationTracked += _logger.Log;
+
+        }
 
         public List<TResult> Select<T, TResult>(Expression<Func<T, TResult>> expression) where T : class where TResult : class
         {
@@ -108,6 +119,12 @@ namespace DORM.Infrastructure.Core
             var table = MappingClass.MapClass<T>();
             var pk = table.SingleOrDefault(f => f.IsPrimaryKey);
             return pk?.FieldName ?? "Id"; // тут змінити якщо хочу читати дані поля а не знати ключ
+        }
+
+        public void Dispose()
+        {
+            _trackChanges.OnOperationTracked -= _logger.Log;
+            (_logger as IDisposable)?.Dispose();
         }
 
         #endregion

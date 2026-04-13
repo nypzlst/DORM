@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
+﻿
 namespace DORM.Infrastructure.TrackHistory
 {
     public class TrackChanges
     {
         private List<Operation> _operations = [];
+
+        public event Action<Operation>? OnOperationTracked;
 
         public IReadOnlyList<Operation> Operations => _operations.AsReadOnly();
 
@@ -21,6 +20,7 @@ namespace DORM.Infrastructure.TrackHistory
                 insertValue, tableName, tableKey);
 
             _operations.Add(InsertOperation);
+            OnOperationTracked?.Invoke(InsertOperation);
         }
 
 
@@ -35,6 +35,7 @@ namespace DORM.Infrastructure.TrackHistory
                 deleteValue, tableName, tableKey);
 
             _operations.Add(DeleteOperation);
+            OnOperationTracked?.Invoke(DeleteOperation);
         }
 
 
@@ -47,6 +48,7 @@ namespace DORM.Infrastructure.TrackHistory
             var UpdateOperation = new Operation(EOperationType.Update, updateValue, tableName, tableField);
 
             _operations.Add(UpdateOperation);
+            OnOperationTracked?.Invoke(UpdateOperation);
         }
 
 
@@ -57,6 +59,7 @@ namespace DORM.Infrastructure.TrackHistory
             if(findOper is not null)
             {
                 findOper.Status = status;
+                OnOperationTracked?.Invoke(findOper);
             }
             else
             {
@@ -66,8 +69,11 @@ namespace DORM.Infrastructure.TrackHistory
         
         public void MarkAll(EOperationStatus status)
         {
-            foreach(var x in _operations)
+            foreach(var x in _operations.Where(x=> x.Status== EOperationStatus.Pending))
+            {
                 x.Status = status;
+                OnOperationTracked?.Invoke(x);
+            }
         }
 
         public void MarkCommitted() => MarkAll(EOperationStatus.Committed);
