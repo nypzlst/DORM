@@ -1,4 +1,4 @@
-﻿using DORM.Attribute;
+using DORM.Attribute;
 using DORM.Exceptions;
 using DORM.Infrastructure.Cache;
 using DORM.Infrastructure.CRUD;
@@ -20,11 +20,12 @@ namespace DORM.Infrastructure.Core
         private readonly TrackChanges _trackChanges;
         private readonly ILogger _logger;
 
-        public DormContext(Database db, ICrudQuery crudQuery, ICacheController cache)
+        public DormContext(Database db, ICrudQuery crudQuery)
         {
             _db = db;
             _cache = new MemoryCacheController();
             _crudQuery = crudQuery;
+            _crudQuery.Cache = _cache;
             _trackChanges = new TrackChanges();
             try
             {
@@ -85,12 +86,12 @@ namespace DORM.Infrastructure.Core
         {
             try
             {
-                await _db.CheckConnection();
+                
                 _db.SaveToDb();
 
                 _trackChanges.MarkCommitted();
             }
-            catch (ConnectionException ex)
+            catch (DormExecutionException ex)
             {
                 Console.WriteLine($"[DORM] Connection error: {ex.Message}");
                 _trackChanges.MarkFailed();

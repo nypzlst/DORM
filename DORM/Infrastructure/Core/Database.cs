@@ -50,8 +50,8 @@ namespace DORM.Infrastructure.Core
             return $"Server={Server};Database={NameDatabase};User ID={User};Password={Password};Port={Port};";
         }
 
-
-        internal async Task CheckConnection()
+ 
+        public async Task CheckConnection()
         {
             if (string.IsNullOrEmpty(QueryConn))
                 QueryConn = constructConnectionString();
@@ -62,7 +62,7 @@ namespace DORM.Infrastructure.Core
             }
             catch (Exception ex)
             {
-                throw new ConnectionException($"Unable to connect to the database: {ex.Message}");
+                throw new DormExecutionException($"Unable to connect to the database: {ex.Message}");
             }
         }
 
@@ -89,9 +89,10 @@ namespace DORM.Infrastructure.Core
 
                     foreach(var property in type.GetProperties())
                     {
-                        if (reader[property.Name] != DBNull.Value)
+                        var colName = property.GetCustomAttribute<NameAttribute>()?.Name ?? property.Name;
+                        if (reader[colName] != DBNull.Value)
                         {
-                            property.SetValue(temp, reader[property.Name]);
+                            property.SetValue(temp, reader[colName]);
                         }
                     }
                     tableSelect.Add(temp);
@@ -105,35 +106,41 @@ namespace DORM.Infrastructure.Core
             if (_pendingQueries.Count == 0) return;
 
             using var connection = new MySqlConnection(constructConnectionString());
-            connection.Open();
-
-            var bt = connection.BeginTransaction();
-
             try
             {
-                using var batch = new MySqlBatch(connection, bt);
-                foreach (var query in _pendingQueries)
+                connection.Open();
+
+                var bt = connection.BeginTransaction();
+
+                try
                 {
-                    var batchCommand = new MySqlBatchCommand(query.Sql);
-                    foreach (var param in query.Parameters)
+                    using var batch = new MySqlBatch(connection, bt);
+                    foreach (var query in _pendingQueries)
                     {
-                        batchCommand.Parameters.AddWithValue(param.Key, param.Value);
+                        var batchCommand = new MySqlBatchCommand(query.Sql);
+                        foreach (var param in query.Parameters)
+                        {
+                            batchCommand.Parameters.AddWithValue(param.Key, param.Value);
+                        }
+
+                        batch.BatchCommands.Add(batchCommand);
                     }
 
-                    batch.BatchCommands.Add(batchCommand);
+                    var affected = batch.ExecuteNonQuery();
+                    bt.Commit();
+                    _pendingQueries.Clear();
+
                 }
-
-                var affected = batch.ExecuteNonQuery();
-                bt.Commit();
-                _pendingQueries.Clear();
-
+                catch (Exception ex)
+                {
+                    bt.Rollback();
+                    throw;
+                }
             }
             catch(Exception ex)
             {
-                bt.Rollback();
-                throw;
+                throw new DormExecutionException("[DORM] Execution error: " + ex.Message);
             }
-            
         }
 
 

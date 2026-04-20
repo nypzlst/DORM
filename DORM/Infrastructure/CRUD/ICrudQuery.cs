@@ -1,3 +1,4 @@
+using DORM.Infrastructure.Cache;
 using DORM.Infrastructure.Core;
 using System;
 using System.Collections.Generic;
@@ -8,6 +9,8 @@ namespace DORM.Infrastructure.CRUD
 {
     public interface ICrudQuery
     {
+        ICacheController Cache { get; set; }
+
         string CreateTable<T>(T entity) where T : class;
         string Select<T, TResult>(Expression<Func<T, TResult>> expression) where T : class;
         ParametrizationQuery Update<T>(T entity) where T : class;

@@ -1,4 +1,4 @@
-﻿using DORM.Attribute;
+using DORM.Attribute;
 using DORM.Infrastructure.Cache;
 using DORM.Infrastructure.Core;
 using DORM.Mapping;

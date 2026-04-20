@@ -16,12 +16,12 @@ namespace DORM.Providers.MySQL{
 
     public class MySqlCrudQuery : ICrudQuery
     {
-        private readonly ICacheController _cache;
+        public ICacheController Cache { get; set; }
 
-        public MySqlCrudQuery(ICacheController cache)
-        {
-            _cache = cache;
-        }
+        //public MySqlCrudQuery(ICacheController cache)
+        //{
+        //    _cache = cache;
+        //}
 
         public string CreateTable<T>(T entity) where T : class
         {
@@ -32,7 +32,7 @@ namespace DORM.Providers.MySQL{
             string NameTable = UniversalMethod.SanitizeName(AttributeNameTable?.Name ?? type.Name);
 
             List<TableField> table = MappingClass.MapClass<T>();
-            _cache.Store(NameTable, table);
+            Cache.Store(NameTable, table);
 
 
             sb.Append("CREATE TABLE ")
@@ -64,7 +64,7 @@ namespace DORM.Providers.MySQL{
         {
             Type type = typeof(T);
             string NameTable = AdditionalQueryMethod.GetNameTable<T>();
-            List<TableField> table = AdditionalQueryMethod.GetCachedTable<T>(NameTable, _cache);
+            List<TableField> table = AdditionalQueryMethod.GetCachedTable<T>(NameTable, Cache);
             
 
             IEnumerable<string> reqFields;
@@ -101,7 +101,7 @@ namespace DORM.Providers.MySQL{
         {
             string TableName = AdditionalQueryMethod.GetNameTable<T>();
 
-            List<TableField> Table = AdditionalQueryMethod.GetCachedTable<T>(TableName,_cache);
+            List<TableField> Table = AdditionalQueryMethod.GetCachedTable<T>(TableName,Cache);
 
             var pkInfo = AdditionalQueryMethod.GetPrimaryKey(Table,entity);
 
@@ -142,7 +142,7 @@ namespace DORM.Providers.MySQL{
         {
             string tableName = AdditionalQueryMethod.GetNameTable<T>();
 
-            var table = AdditionalQueryMethod.GetCachedTable<T>(tableName, _cache);
+            var table = AdditionalQueryMethod.GetCachedTable<T>(tableName, Cache);
             var pkInfo = AdditionalQueryMethod.GetPrimaryKey(table, entity);
 
             var sb = new StringBuilder();
@@ -162,7 +162,7 @@ namespace DORM.Providers.MySQL{
             string tableName = AdditionalQueryMethod.GetNameTable<T>();
 
             sb.Append("INSERT INTO ").Append(tableName).Append(" (");
-            var table = AdditionalQueryMethod.GetCachedTable<T>(tableName,_cache);
+            var table = AdditionalQueryMethod.GetCachedTable<T>(tableName,Cache);
             List<string> fieldToInsert = new();
             List<object> fieldPlaceholder = new();
             Dictionary<string,object> param = new();
