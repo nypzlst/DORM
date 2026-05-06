@@ -13,7 +13,6 @@ namespace DORM.Infrastructure.TrackHistory
         public DateTime CreatedAt { get; init; }
 
         public object? Value { get; set; }
-        //public int ChangedFields { get; set; } create soon
 
         public string? EntityName { get; set; }
         public string? EntityKey { get; set; }

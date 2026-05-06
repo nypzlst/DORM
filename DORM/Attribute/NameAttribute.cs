@@ -1,17 +1,10 @@
 ﻿using DORM.Mapping.Reflect;
-using System;
-using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Xml.Linq;
 
 namespace DORM.Attribute
 {
 
-    /// <summary>
-    /// Атрибут який надає пріорітет назві колонки, таблиці
-    /// </summary> 
     [System.AttributeUsage(System.AttributeTargets.Class | System.AttributeTargets.Property , AllowMultiple = false)]
     public class NameAttribute : System.Attribute, IApplyAttribute
     {

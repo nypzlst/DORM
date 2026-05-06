@@ -9,8 +9,5 @@ namespace DORM.Infrastructure.Cache
     {
         void Store(string tableName, List<TableField> tableFields);
         bool TryGet(string tableName, out List<TableField> tableFields);
-
-
-
     }
 }

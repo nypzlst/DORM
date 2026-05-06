@@ -20,7 +20,7 @@ namespace DORM.Mapping
                 var pName = info.Name;
                 var pType = info.PropertyType.Name;
                 var pNullAllowed = CheckNullInProperty(info);
-                TableField tField = new TableField(info.Name, pType, pNullAllowed);
+                TableField tField = new TableField(pName, pType, pNullAllowed);
                 CheckAttributes(info, tField);
                 table.Add(tField);
             }

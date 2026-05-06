@@ -18,11 +18,6 @@ namespace DORM.Providers.MySQL{
     {
         public ICacheController Cache { get; set; }
 
-        //public MySqlCrudQuery(ICacheController cache)
-        //{
-        //    _cache = cache;
-        //}
-
         public string CreateTable<T>(T entity) where T : class
         {
             var sb = new StringBuilder();
