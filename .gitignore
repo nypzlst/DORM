@@ -395,6 +395,11 @@ FodyWeavers.xsd
 /.editorconfig
 /toc.yml
 /index.md
-/TestORM
-/TestORM/Program.cs
 features.md
+
+# DORM local config (with DB credentials) — keep it out of git
+.env
+.env.*
+!.env.example
+TestORM/dbconfig.txt
+TestORM/appsettings.Development.json

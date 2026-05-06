@@ -168,12 +168,12 @@ namespace DORM.Providers.MySQL{
                 var checkField = table.SingleOrDefault(x => x.FieldName == columnName);
                 if (checkField != null && !checkField.IsPrimaryKey)
                 {
-                    fieldToInsert.Add(info.Name);
-                    fieldPlaceholder.Add($"@{info.Name}");
+                    fieldToInsert.Add(columnName);
+                    fieldPlaceholder.Add($"@{columnName}");
 
                     var val = info.GetValue(entity);
 
-                    param.Add($"@{info.Name}", val ?? DBNull.Value);
+                    param.Add($"@{columnName}", val ?? DBNull.Value);
                 }
             }
             sb.Append(string.Join(", ", fieldToInsert)).Append(") ").Append("VALUES ");

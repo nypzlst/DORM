@@ -50,14 +50,22 @@ namespace DORM.Infrastructure.Core
             return $"Server={Server};Database={NameDatabase};User ID={User};Password={Password};Port={Port};";
         }
 
- 
-        public async Task CheckConnection()
+        /// <summary>
+        /// Возвращает строку подключения, лениво кэшируя её в QueryConn после первого построения.
+        /// </summary>
+        private string GetConnectionString()
         {
             if (string.IsNullOrEmpty(QueryConn))
                 QueryConn = constructConnectionString();
+            return QueryConn;
+        }
+
+
+        public async Task CheckConnection()
+        {
             try
             {
-                await using var connection = new MySqlConnection(QueryConn);
+                await using var connection = new MySqlConnection(GetConnectionString());
                 await connection.OpenAsync();
             }
             catch (Exception ex)
@@ -66,14 +74,13 @@ namespace DORM.Infrastructure.Core
             }
         }
 
-        //TODO: Додати зберігання готового connection string як поля після першої побудови
         //TODO: ExecuteAsync(string sql) — для INSERT, UPDATE, DELETE, CREATE TABLE. Відкриває з'єднання → створює MySqlCommand → виконує → закриває.
         //TODO: QueryAsync<T>(string sql) — для SELECT.Відкриває з'єднання → читає результат через MySqlDataReader → маппить рядки назад у List<T> → закриває.
 
-        
-       public List<T> SelectQuery<T>(string query) where T : class
+
+        public List<T> SelectQuery<T>(string query) where T : class
         {
-            using var connection = new MySqlConnection(constructConnectionString());
+            using var connection = new MySqlConnection(GetConnectionString());
             connection.Open();
 
             using var command = new MySqlCommand(query, connection);
@@ -105,7 +112,7 @@ namespace DORM.Infrastructure.Core
         {
             if (_pendingQueries.Count == 0) return;
 
-            using var connection = new MySqlConnection(constructConnectionString());
+            using var connection = new MySqlConnection(GetConnectionString());
             try
             {
                 connection.Open();
@@ -126,12 +133,12 @@ namespace DORM.Infrastructure.Core
                         batch.BatchCommands.Add(batchCommand);
                     }
 
-                    var affected = batch.ExecuteNonQuery();
+                    batch.ExecuteNonQuery();
                     bt.Commit();
                     _pendingQueries.Clear();
 
                 }
-                catch (Exception ex)
+                catch
                 {
                     bt.Rollback();
                     throw;
@@ -152,9 +159,7 @@ namespace DORM.Infrastructure.Core
 
         public void ExecuteRaw(string sql)
         {
-            if (string.IsNullOrEmpty(QueryConn))
-                QueryConn = constructConnectionString();
-            using var connection = new MySqlConnection(QueryConn);
+            using var connection = new MySqlConnection(GetConnectionString());
             connection.Open();
             using var command = new MySqlCommand(sql, connection);
             command.ExecuteNonQuery();

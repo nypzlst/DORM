@@ -6,32 +6,26 @@ namespace DORM.Infrastructure.Logger
     internal class JsonLogger : ILogger, IDisposable
     {
         private readonly Lock _lock = new();
-        private readonly StreamWriter? _writer;
+        private readonly StreamWriter _writer;
         private readonly string _logFileName;
         private bool _isFaulted;
 
         public JsonLogger()
         {
             _logFileName = Path.Combine(Directory.GetCurrentDirectory(), $"Log_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.json");
-            try
-            {
-                _writer = new StreamWriter(_logFileName, append: true) { AutoFlush = true };
-            }
-            catch
-            {
-                _isFaulted = true;
-            }
+            // Если открыть файл не удалось — даём исключению уйти наверх,
+            // чтобы вызывающий код мог откатиться к BlankLogger.
+            _writer = new StreamWriter(_logFileName, append: true) { AutoFlush = true };
         }
 
 
         public void Log(Operation op)
         {
-           if (_isFaulted) return; 
+            if (_isFaulted) return;
 
-           lock(_lock)
-           {
+            lock (_lock)
+            {
                 if (_isFaulted) return;
-                if (_writer == null) return; 
                 try
                 {
                     string json = JsonSerializer.Serialize(new
@@ -55,7 +49,7 @@ namespace DORM.Infrastructure.Logger
                 {
                     _isFaulted = true;
                 }
-           }
+            }
         }
 
 
@@ -64,7 +58,7 @@ namespace DORM.Infrastructure.Logger
             lock (_lock)
             {
                 _isFaulted = true;
-                _writer?.Dispose();
+                _writer.Dispose();
             }
         }
 
