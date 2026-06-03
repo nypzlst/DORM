@@ -39,8 +39,8 @@ class Program
         // Fallback check: Did it load anything at all?
         if (string.IsNullOrEmpty(connectionString) || connectionString.Contains("Uid=;")) // Simple check if it was built completely empty
         {
-            AnsiConsole.MarkupLine("[red]Error:[/] CONNECTION_STRING or DORM_* variables are missing.");
-            AnsiConsole.MarkupLine("[yellow]Hint:[/] Ensure your .env file contains either CONNECTION_STRING=... or DORM_HOST, DORM_USER, DORM_PASS, DORM_DB.");
+            AnsiConsole.MarkupLine("[red]Помилка:[/] Відсутня змінна CONNECTION_STRING або змінні DORM_* у файлі .env.");
+            AnsiConsole.MarkupLine("[yellow]Підказка:[/] Переконайтеся, що файл .env містить CONNECTION_STRING=... або DORM_HOST, DORM_USER, DORM_PASS, DORM_DB.");
             return;
         }
 
@@ -67,44 +67,44 @@ class Program
                 .LeftJustified()
                 .Color(Color.Blue));
 
-        AnsiConsole.MarkupLine($"[grey]Connected to:[/] {dbType.ToUpper()} | [grey]Database:[/] {dbName}");
+        AnsiConsole.MarkupLine($"[grey]Підключено до:[/] {dbType.ToUpper()} | [grey]База даних:[/] {dbName}");
         AnsiConsole.WriteLine();
 
         while (true)
         {
             var action = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
-                    .Title("Select an action:")
+                    .Title("Виберіть дію:")
                     .PageSize(10)
                     .AddChoices(new[] {
-                        "Monitor Status", 
-                        "List Tables", 
-                        "View Statistics",
-                        "Drop Table", 
-                        "Truncate Table", 
-                        "Exit"
+                        "Статус сервера", 
+                        "Список таблиць", 
+                        "Статистика БД",
+                        "Видалити таблицю (Drop)", 
+                        "Очистити таблицю (Truncate)", 
+                        "Вихід"
                     }));
 
             try
             {
                 switch (action)
                 {
-                    case "Monitor Status":
+                    case "Статус сервера":
                         await ShowStatusAsync(monitor, dbName);
                         break;
-                    case "List Tables":
+                    case "Список таблиць":
                         await ShowTablesAsync(monitor, dbName);
                         break;
-                    case "View Statistics":
+                    case "Статистика БД":
                         await ShowStatisticsChartAsync(monitor, dbName);
                         break;
-                    case "Drop Table":
+                    case "Видалити таблицю (Drop)":
                         await DropTablePromptAsync(admin, monitor, dbName);
                         break;
-                    case "Truncate Table":
+                    case "Очистити таблицю (Truncate)":
                         await TruncateTablePromptAsync(admin, monitor, dbName);
                         break;
-                    case "Exit":
+                    case "Вихід":
                         return;
                 }
             }
@@ -114,7 +114,7 @@ class Program
             }
 
             AnsiConsole.WriteLine();
-            AnsiConsole.MarkupLine("[grey]Press Enter to continue...[/]");
+            AnsiConsole.MarkupLine("[grey]Натисніть Enter для продовження...[/]");
             Console.ReadLine();
             AnsiConsole.Clear();
         }
@@ -123,7 +123,7 @@ class Program
     private static async Task ShowStatusAsync(IDatabaseMonitor monitor, string dbName)
     {
         await AnsiConsole.Status()
-            .StartAsync("Fetching server status...", async ctx =>
+            .StartAsync("Отримання статусу сервера...", async ctx =>
             {
                 var version = await monitor.GetServerVersionAsync();
                 var connections = await monitor.GetActiveConnectionsAsync();
@@ -131,33 +131,33 @@ class Program
                 var extraMetrics = await monitor.GetServerStatusAsync();
 
                 var table = new Table();
-                table.AddColumn("Metric");
-                table.AddColumn("Value");
+                table.AddColumn("Метрика");
+                table.AddColumn("Значення");
 
-                table.AddRow("Server Version", $"[green]{version}[/]");
-                table.AddRow("DB Size (Bytes)", $"[blue]{dbSize:N0}[/]");
-                table.AddRow("Active Connections", $"[yellow]{connections}[/]");
+                table.AddRow("Версія сервера", $"[green]{version}[/]");
+                table.AddRow("Розмір БД (Байт)", $"[blue]{dbSize:N0}[/]");
+                table.AddRow("Активні підключення", $"[yellow]{connections}[/]");
                 
                 if (extraMetrics.TryGetValue("Uptime", out var uptimeStr) && long.TryParse(uptimeStr, out var uptimeSeconds))
                 {
                     var timeSpan = TimeSpan.FromSeconds(uptimeSeconds);
-                    table.AddRow("Uptime", $"[cyan]{timeSpan.Days}d {timeSpan.Hours}h {timeSpan.Minutes}m[/]");
+                    table.AddRow("Час роботи (Uptime)", $"[cyan]{timeSpan.Days}д {timeSpan.Hours}г {timeSpan.Minutes}хв[/]");
                 }
                 
                 if (extraMetrics.TryGetValue("Questions", out var questions))
-                    table.AddRow("Total Queries", $"[magenta]{questions}[/]");
+                    table.AddRow("Всього запитів", $"[magenta]{questions}[/]");
                     
                 if (extraMetrics.TryGetValue("Slow_queries", out var slow))
-                    table.AddRow("Slow Queries", int.TryParse(slow, out var s) && s > 0 ? $"[red]{slow}[/]" : $"[green]{slow}[/]");
+                    table.AddRow("Повільні запити", int.TryParse(slow, out var s) && s > 0 ? $"[red]{slow}[/]" : $"[green]{slow}[/]");
                     
                 if (extraMetrics.TryGetValue("Threads_running", out var threads))
-                    table.AddRow("Threads Running", $"[yellow]{threads}[/]");
+                    table.AddRow("Активні потоки", $"[yellow]{threads}[/]");
 
                 if (extraMetrics.TryGetValue("Bytes_received", out var recv) && long.TryParse(recv, out var recvBytes))
-                    table.AddRow("Network Received", $"[blue]{recvBytes / 1024.0 / 1024.0:N2} MB[/]");
+                    table.AddRow("Отримано по мережі", $"[blue]{recvBytes / 1024.0 / 1024.0:N2} МБ[/]");
 
                 if (extraMetrics.TryGetValue("Bytes_sent", out var sent) && long.TryParse(sent, out var sentBytes))
-                    table.AddRow("Network Sent", $"[blue]{sentBytes / 1024.0 / 1024.0:N2} MB[/]");
+                    table.AddRow("Відправлено по мережі", $"[blue]{sentBytes / 1024.0 / 1024.0:N2} МБ[/]");
 
                 AnsiConsole.Write(table);
             });
@@ -166,13 +166,13 @@ class Program
     private static async Task ShowTablesAsync(IDatabaseMonitor monitor, string dbName)
     {
         await AnsiConsole.Status()
-            .StartAsync("Fetching tables...", async ctx =>
+            .StartAsync("Отримання списку таблиць...", async ctx =>
             {
                 var tables = await monitor.GetTableSizesAsync(dbName);
 
                 var table = new Table();
-                table.AddColumn("Table Name");
-                table.AddColumn("Size (Bytes)");
+                table.AddColumn("Назва таблиці");
+                table.AddColumn("Розмір (Байт)");
 
                 foreach (var t in tables)
                 {
@@ -188,21 +188,21 @@ class Program
         var tables = await monitor.GetTablesAsync(dbName);
         if (!tables.Any())
         {
-            AnsiConsole.MarkupLine("[yellow]No tables found.[/]");
+            AnsiConsole.MarkupLine("[yellow]Таблиць не знайдено.[/]");
             return;
         }
 
         var tableToDrop = AnsiConsole.Prompt(
             new SelectionPrompt<string>()
-                .Title("Select a table to [red]DROP[/]:")
-                .AddChoices(tables.Append("<Cancel>")));
+                .Title("Виберіть таблицю для [red]ВИДАЛЕННЯ (DROP)[/]:")
+                .AddChoices(tables.Append("<Скасувати>")));
 
-        if (tableToDrop == "<Cancel>") return;
+        if (tableToDrop == "<Скасувати>") return;
 
-        if (AnsiConsole.Confirm($"Are you sure you want to drop [red]{Markup.Escape(tableToDrop)}[/]?", defaultValue: false))
+        if (AnsiConsole.Confirm($"Ви впевнені, що хочете безповоротно видалити таблицю [red]{Markup.Escape(tableToDrop)}[/]?", defaultValue: false))
         {
             await admin.DropTableAsync(tableToDrop);
-            AnsiConsole.MarkupLine($"[green]Table {Markup.Escape(tableToDrop)} dropped successfully.[/]");
+            AnsiConsole.MarkupLine($"[green]Таблицю {Markup.Escape(tableToDrop)} успішно видалено.[/]");
         }
     }
 
@@ -211,38 +211,38 @@ class Program
          var tables = await monitor.GetTablesAsync(dbName);
         if (!tables.Any())
         {
-            AnsiConsole.MarkupLine("[yellow]No tables found.[/]");
+            AnsiConsole.MarkupLine("[yellow]Таблиць не знайдено.[/]");
             return;
         }
 
         var tableToTruncate = AnsiConsole.Prompt(
             new SelectionPrompt<string>()
-                .Title("Select a table to [yellow]TRUNCATE[/]:")
-                .AddChoices(tables.Append("<Cancel>")));
+                .Title("Виберіть таблицю для [yellow]ОЧИЩЕННЯ (TRUNCATE)[/]:")
+                .AddChoices(tables.Append("<Скасувати>")));
 
-        if (tableToTruncate == "<Cancel>") return;
+        if (tableToTruncate == "<Скасувати>") return;
 
-        if (AnsiConsole.Confirm($"Are you sure you want to truncate [yellow]{Markup.Escape(tableToTruncate)}[/]?", defaultValue: false))
+        if (AnsiConsole.Confirm($"Ви впевнені, що хочете очистити дані з таблиці [yellow]{Markup.Escape(tableToTruncate)}[/]?", defaultValue: false))
         {
             await admin.TruncateTableAsync(tableToTruncate);
-            AnsiConsole.MarkupLine($"[green]Table {Markup.Escape(tableToTruncate)} truncated successfully.[/]");
+            AnsiConsole.MarkupLine($"[green]Таблицю {Markup.Escape(tableToTruncate)} успішно очищено.[/]");
         }
     }
 
     private static async Task ShowStatisticsChartAsync(IDatabaseMonitor monitor, string dbName)
     {
         await AnsiConsole.Status()
-            .StartAsync("Analyzing database structure and sizes...", async ctx =>
+            .StartAsync("Аналіз структури та розмірів бази даних...", async ctx =>
             {
                 var tables = await monitor.GetTableSizesAsync(dbName);
                 
                 if (!tables.Any())
                 {
-                    AnsiConsole.MarkupLine("[yellow]No tables found to analyze.[/]");
+                    AnsiConsole.MarkupLine("[yellow]Не знайдено таблиць для аналізу.[/]");
                     return;
                 }
 
-                AnsiConsole.Write(new Rule($"[bold cyan]Database Statistics: {dbName}[/]").RuleStyle("grey").LeftJustified());
+                AnsiConsole.Write(new Rule($"[bold cyan]Статистика бази даних: {dbName}[/]").RuleStyle("grey").LeftJustified());
                 AnsiConsole.WriteLine();
 
                 // 1. Overall Database Breakdown (Data vs Indexes)
@@ -250,21 +250,21 @@ class Program
                 long totalIndexes = tables.Sum(t => t.IndexLength);
                 long totalSize = tables.Sum(t => t.SizeBytes);
 
-                AnsiConsole.MarkupLine("[bold yellow]1. Storage Distribution[/]");
+                AnsiConsole.MarkupLine("[bold yellow]1. Розподіл пам'яті[/]");
                 var breakdown = new BreakdownChart()
                     .Width(60)
-                    .AddItem("Raw Data", totalData, Color.Green)
-                    .AddItem("Indexes", totalIndexes, Color.Blue);
+                    .AddItem("Сирі дані", totalData, Color.Green)
+                    .AddItem("Індекси", totalIndexes, Color.Blue);
                 AnsiConsole.Write(breakdown);
                 AnsiConsole.WriteLine();
 
                 // 2. Top Largest Tables Bar Chart
-                AnsiConsole.MarkupLine("[bold yellow]2. Top Largest Tables (by Total Size)[/]");
+                AnsiConsole.MarkupLine("[bold yellow]2. Найбільші таблиці (за загальним розміром)[/]");
                 var topTables = tables.OrderByDescending(t => t.SizeBytes).Take(10).ToList();
 
                 var chart = new BarChart()
                     .Width(60)
-                    .Label("[grey]Size in KB[/]")
+                    .Label("[grey]Розмір у КБ[/]")
                     .CenterLabel();
 
                 var colors = new[] { Color.Red, Color.Orange1, Color.Yellow, Color.Green, Color.Blue, Color.Purple, Color.Magenta1 };
@@ -281,14 +281,14 @@ class Program
                 AnsiConsole.WriteLine();
 
                 // 3. Table Density (Average row size simulation based on structure)
-                AnsiConsole.MarkupLine("[bold yellow]3. Summary[/]");
+                AnsiConsole.MarkupLine("[bold yellow]3. Загальний підсумок[/]");
                 var grid = new Grid()
                     .AddColumn(new GridColumn().NoWrap().PadRight(4))
                     .AddColumn();
 
-                grid.AddRow("[grey]Total Tables:[/]", $"[white]{tables.Count()}[/]");
-                grid.AddRow("[grey]Total Size:[/]", $"[white]{totalSize / 1024.0 / 1024.0:N2} MB[/]");
-                grid.AddRow("[grey]Heaviest Table:[/]", $"[white]{Markup.Escape(topTables.FirstOrDefault()?.TableName ?? "N/A")}[/]");
+                grid.AddRow("[grey]Всього таблиць:[/]", $"[white]{tables.Count()}[/]");
+                grid.AddRow("[grey]Загальний розмір:[/]", $"[white]{totalSize / 1024.0 / 1024.0:N2} МБ[/]");
+                grid.AddRow("[grey]Найважча таблиця:[/]", $"[white]{Markup.Escape(topTables.FirstOrDefault()?.TableName ?? "Немає")}[/]");
 
                 AnsiConsole.Write(new Panel(grid).Expand().BorderColor(Color.Grey));
             });
