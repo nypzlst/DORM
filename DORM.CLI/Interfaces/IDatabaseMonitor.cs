@@ -8,6 +8,6 @@ public interface IDatabaseMonitor
     Task<int> GetActiveConnectionsAsync();
     Task<IEnumerable<string>> GetTablesAsync(string dbName);
     Task<IEnumerable<TableStatistic>> GetTableSizesAsync(string dbName);
-    Task<string> GetServerStatusAsync();
+    Task<Dictionary<string, string>> GetServerStatusAsync();
     Task<long> GetDatabaseSizeAsync(string dbName);
 }

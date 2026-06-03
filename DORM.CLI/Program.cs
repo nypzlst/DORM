@@ -79,6 +79,7 @@ class Program
                     .AddChoices(new[] {
                         "Monitor Status", 
                         "List Tables", 
+                        "View Statistics",
                         "Drop Table", 
                         "Truncate Table", 
                         "Exit"
@@ -93,6 +94,9 @@ class Program
                         break;
                     case "List Tables":
                         await ShowTablesAsync(monitor, dbName);
+                        break;
+                    case "View Statistics":
+                        await ShowStatisticsChartAsync(monitor, dbName);
                         break;
                     case "Drop Table":
                         await DropTablePromptAsync(admin, monitor, dbName);
@@ -124,14 +128,36 @@ class Program
                 var version = await monitor.GetServerVersionAsync();
                 var connections = await monitor.GetActiveConnectionsAsync();
                 var dbSize = await monitor.GetDatabaseSizeAsync(dbName);
+                var extraMetrics = await monitor.GetServerStatusAsync();
 
                 var table = new Table();
                 table.AddColumn("Metric");
                 table.AddColumn("Value");
 
-                table.AddRow("Version", $"[green]{version}[/]");
-                table.AddRow("Active Connections", $"[yellow]{connections}[/]");
+                table.AddRow("Server Version", $"[green]{version}[/]");
                 table.AddRow("DB Size (Bytes)", $"[blue]{dbSize:N0}[/]");
+                table.AddRow("Active Connections", $"[yellow]{connections}[/]");
+                
+                if (extraMetrics.TryGetValue("Uptime", out var uptimeStr) && long.TryParse(uptimeStr, out var uptimeSeconds))
+                {
+                    var timeSpan = TimeSpan.FromSeconds(uptimeSeconds);
+                    table.AddRow("Uptime", $"[cyan]{timeSpan.Days}d {timeSpan.Hours}h {timeSpan.Minutes}m[/]");
+                }
+                
+                if (extraMetrics.TryGetValue("Questions", out var questions))
+                    table.AddRow("Total Queries", $"[magenta]{questions}[/]");
+                    
+                if (extraMetrics.TryGetValue("Slow_queries", out var slow))
+                    table.AddRow("Slow Queries", int.TryParse(slow, out var s) && s > 0 ? $"[red]{slow}[/]" : $"[green]{slow}[/]");
+                    
+                if (extraMetrics.TryGetValue("Threads_running", out var threads))
+                    table.AddRow("Threads Running", $"[yellow]{threads}[/]");
+
+                if (extraMetrics.TryGetValue("Bytes_received", out var recv) && long.TryParse(recv, out var recvBytes))
+                    table.AddRow("Network Received", $"[blue]{recvBytes / 1024.0 / 1024.0:N2} MB[/]");
+
+                if (extraMetrics.TryGetValue("Bytes_sent", out var sent) && long.TryParse(sent, out var sentBytes))
+                    table.AddRow("Network Sent", $"[blue]{sentBytes / 1024.0 / 1024.0:N2} MB[/]");
 
                 AnsiConsole.Write(table);
             });
@@ -201,5 +227,70 @@ class Program
             await admin.TruncateTableAsync(tableToTruncate);
             AnsiConsole.MarkupLine($"[green]Table {Markup.Escape(tableToTruncate)} truncated successfully.[/]");
         }
+    }
+
+    private static async Task ShowStatisticsChartAsync(IDatabaseMonitor monitor, string dbName)
+    {
+        await AnsiConsole.Status()
+            .StartAsync("Analyzing database structure and sizes...", async ctx =>
+            {
+                var tables = await monitor.GetTableSizesAsync(dbName);
+                
+                if (!tables.Any())
+                {
+                    AnsiConsole.MarkupLine("[yellow]No tables found to analyze.[/]");
+                    return;
+                }
+
+                AnsiConsole.Write(new Rule($"[bold cyan]Database Statistics: {dbName}[/]").RuleStyle("grey").LeftJustified());
+                AnsiConsole.WriteLine();
+
+                // 1. Overall Database Breakdown (Data vs Indexes)
+                long totalData = tables.Sum(t => t.DataLength);
+                long totalIndexes = tables.Sum(t => t.IndexLength);
+                long totalSize = tables.Sum(t => t.SizeBytes);
+
+                AnsiConsole.MarkupLine("[bold yellow]1. Storage Distribution[/]");
+                var breakdown = new BreakdownChart()
+                    .Width(60)
+                    .AddItem("Raw Data", totalData, Color.Green)
+                    .AddItem("Indexes", totalIndexes, Color.Blue);
+                AnsiConsole.Write(breakdown);
+                AnsiConsole.WriteLine();
+
+                // 2. Top Largest Tables Bar Chart
+                AnsiConsole.MarkupLine("[bold yellow]2. Top Largest Tables (by Total Size)[/]");
+                var topTables = tables.OrderByDescending(t => t.SizeBytes).Take(10).ToList();
+
+                var chart = new BarChart()
+                    .Width(60)
+                    .Label("[grey]Size in KB[/]")
+                    .CenterLabel();
+
+                var colors = new[] { Color.Red, Color.Orange1, Color.Yellow, Color.Green, Color.Blue, Color.Purple, Color.Magenta1 };
+                int colorIndex = 0;
+
+                foreach (var t in topTables)
+                {
+                    double sizeKb = t.SizeBytes / 1024.0;
+                    chart.AddItem(Markup.Escape(t.TableName), Math.Round(sizeKb, 2), colors[colorIndex % colors.Length]);
+                    colorIndex++;
+                }
+
+                AnsiConsole.Write(chart);
+                AnsiConsole.WriteLine();
+
+                // 3. Table Density (Average row size simulation based on structure)
+                AnsiConsole.MarkupLine("[bold yellow]3. Summary[/]");
+                var grid = new Grid()
+                    .AddColumn(new GridColumn().NoWrap().PadRight(4))
+                    .AddColumn();
+
+                grid.AddRow("[grey]Total Tables:[/]", $"[white]{tables.Count()}[/]");
+                grid.AddRow("[grey]Total Size:[/]", $"[white]{totalSize / 1024.0 / 1024.0:N2} MB[/]");
+                grid.AddRow("[grey]Heaviest Table:[/]", $"[white]{Markup.Escape(topTables.FirstOrDefault()?.TableName ?? "N/A")}[/]");
+
+                AnsiConsole.Write(new Panel(grid).Expand().BorderColor(Color.Grey));
+            });
     }
 }

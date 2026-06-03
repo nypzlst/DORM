@@ -62,7 +62,11 @@ public class MySqlProvider : IDatabaseMonitor, IDatabaseAdmin
         var stats = new List<TableStatistic>();
         await using var connection = await GetConnectionAsync();
         var query = @"
-            SELECT TABLE_NAME, (DATA_LENGTH + INDEX_LENGTH) as SizeBytes 
+            SELECT 
+                TABLE_NAME, 
+                (DATA_LENGTH + INDEX_LENGTH) as SizeBytes,
+                DATA_LENGTH as DataLength,
+                INDEX_LENGTH as IndexLength
             FROM INFORMATION_SCHEMA.TABLES 
             WHERE TABLE_SCHEMA = @dbName";
         await using var command = new MySqlCommand(query, connection);
@@ -72,23 +76,25 @@ public class MySqlProvider : IDatabaseMonitor, IDatabaseAdmin
         {
             stats.Add(new TableStatistic(
                 reader.GetString("TABLE_NAME"),
-                Convert.ToInt64(reader["SizeBytes"])
+                Convert.ToInt64(reader["SizeBytes"]),
+                Convert.ToInt64(reader["DataLength"]),
+                Convert.ToInt64(reader["IndexLength"])
             ));
         }
         return stats;
     }
 
-    public async Task<string> GetServerStatusAsync()
+    public async Task<Dictionary<string, string>> GetServerStatusAsync()
     {
-        var status = new StringBuilder();
+        var metrics = new Dictionary<string, string>();
         await using var connection = await GetConnectionAsync();
-        await using var command = new MySqlCommand("SHOW STATUS WHERE Variable_name IN ('Uptime', 'Questions', 'Slow_queries')", connection);
+        await using var command = new MySqlCommand("SHOW GLOBAL STATUS WHERE Variable_name IN ('Uptime', 'Questions', 'Slow_queries', 'Bytes_received', 'Bytes_sent', 'Threads_running')", connection);
         await using var reader = await command.ExecuteReaderAsync();
         while (await reader.ReadAsync())
         {
-            status.AppendLine($"{reader["Variable_name"]}: {reader["Value"]}");
+            metrics[reader.GetString("Variable_name")] = reader.GetString("Value");
         }
-        return status.ToString().TrimEnd();
+        return metrics;
     }
 
     public async Task<long> GetDatabaseSizeAsync(string dbName)

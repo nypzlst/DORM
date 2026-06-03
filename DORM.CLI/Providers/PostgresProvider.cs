@@ -58,32 +58,48 @@ public class PostgresProvider : IDatabaseMonitor, IDatabaseAdmin
     {
         var stats = new List<TableStatistic>();
         await using var connection = await GetConnectionAsync();
-        var query = "SELECT relname as TABLE_NAME, pg_total_relation_size(relid) as SizeBytes FROM pg_catalog.pg_statio_user_tables";
+        var query = @"
+            SELECT 
+                relname as TABLE_NAME, 
+                pg_total_relation_size(relid) as SizeBytes,
+                pg_relation_size(relid) as DataLength,
+                pg_indexes_size(relid) as IndexLength
+            FROM pg_catalog.pg_statio_user_tables";
         await using var command = new NpgsqlCommand(query, connection);
         await using var reader = await command.ExecuteReaderAsync();
         while (await reader.ReadAsync())
         {
             stats.Add(new TableStatistic(
                 reader.GetString(reader.GetOrdinal("TABLE_NAME")),
-                Convert.ToInt64(reader["SizeBytes"])
+                Convert.ToInt64(reader["SizeBytes"]),
+                Convert.ToInt64(reader["DataLength"]),
+                Convert.ToInt64(reader["IndexLength"])
             ));
         }
         return stats;
     }
 
-    public async Task<string> GetServerStatusAsync()
+    public async Task<Dictionary<string, string>> GetServerStatusAsync()
     {
-        var status = new StringBuilder();
+        var metrics = new Dictionary<string, string>();
         await using var connection = await GetConnectionAsync();
-        var query = "SELECT pg_postmaster_start_time() as Uptime, pg_database_size(current_database()) as DbSize";
+        var query = @"
+            SELECT 
+                EXTRACT(EPOCH FROM (now() - pg_postmaster_start_time()))::bigint as Uptime,
+                xact_commit + xact_rollback as Questions,
+                (SELECT count(*) FROM pg_stat_activity WHERE state = 'active') as Threads_running
+            FROM pg_stat_database 
+            WHERE datname = current_database();";
+            
         await using var command = new NpgsqlCommand(query, connection);
         await using var reader = await command.ExecuteReaderAsync();
         if (await reader.ReadAsync())
         {
-            status.AppendLine($"Started: {reader["Uptime"]}");
-            status.AppendLine($"Current DB Size: {reader["DbSize"]} bytes");
+            metrics["Uptime"] = reader["Uptime"].ToString() ?? "0";
+            metrics["Questions"] = reader["Questions"].ToString() ?? "0";
+            metrics["Threads_running"] = reader["Threads_running"].ToString() ?? "0";
         }
-        return status.ToString().TrimEnd();
+        return metrics;
     }
 
     public async Task<long> GetDatabaseSizeAsync(string dbName)
