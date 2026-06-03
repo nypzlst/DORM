@@ -6,7 +6,7 @@ public class UniversalMethodTests
 {
     [Theory]
     [InlineData("Users")]
-    [InlineData("_Users")]   // SanitizeName допускает начало с подчёркивания
+    [InlineData("_Users")]   // SanitizeName допускає початок з підкреслення
     [InlineData("TUser_2")]
     public void SanitizeName_AcceptsValidNames(string name)
     {

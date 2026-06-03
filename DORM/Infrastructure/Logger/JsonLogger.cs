@@ -13,8 +13,8 @@ namespace DORM.Infrastructure.Logger
         public JsonLogger()
         {
             _logFileName = Path.Combine(Directory.GetCurrentDirectory(), $"Log_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.json");
-            // Если открыть файл не удалось — даём исключению уйти наверх,
-            // чтобы вызывающий код мог откатиться к BlankLogger.
+            // Якщо відкрити файл не вдалося — даємо винятку піти нагору,
+            // щоб викликаючий код міг відкотитись до BlankLogger.
             _writer = new StreamWriter(_logFileName, append: true) { AutoFlush = true };
         }
 

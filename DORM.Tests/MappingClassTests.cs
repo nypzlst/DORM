@@ -20,7 +20,7 @@ public class MappingClassTests
         var email = fields.Single(f => f.FieldName == "Email");
         Assert.False(email.IsPrimaryKey);
         Assert.True(email.IsUnique);
-        Assert.True(email.IsNullable, "string? должно дать IsNullable=true");
+        Assert.True(email.IsNullable, "string? має дати IsNullable=true");
     }
 
     [Fact]
@@ -48,7 +48,7 @@ public class MappingClassTests
     public void MapClass_Renamed_NameAttributeOnProperty_OverridesFieldName()
     {
         var fields = MappingClass.MapClass<RenamedModel>();
-        // Свойство Email с [Name("EmailAddress")] должно дать колонку EmailAddress.
+        // Властивість Email з [Name("EmailAddress")] має дати колонку EmailAddress.
         Assert.Contains(fields, f => f.FieldName == "EmailAddress");
         Assert.DoesNotContain(fields, f => f.FieldName == "Email");
     }

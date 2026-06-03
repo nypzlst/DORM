@@ -15,9 +15,9 @@ public class AttributesTests
     }
 
     [Theory]
-    [InlineData("1User")]      // не может начинаться с цифры
-    [InlineData("_User")]      // регекс требует букву в начале
-    [InlineData("User; DROP")] // запрещённые символы
+    [InlineData("1User")]      // не може починатися з цифри
+    [InlineData("_User")]      // регекс вимагає літеру на початку
+    [InlineData("User; DROP")] // заборонені символи
     [InlineData("")]
     public void NameAttribute_RejectsInvalidNames(string name)
     {

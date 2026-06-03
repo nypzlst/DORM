@@ -14,13 +14,13 @@ public class DatabaseTests
     [Fact]
     public async Task CheckConnection_UnreachableServer_ThrowsDormExecutionException()
     {
-        // Несуществующий хост — драйвер быстро упадёт.
+        // Неіснуючий хост — драйвер швидко впаде.
         var db = new Database(
             namedb: "no_db",
             server: "127.0.0.1",
             user: "u",
             password: "p",
-            port: 1); // явно «никем не слушаемый» порт
+            port: 1); // явно «ніким не слуханий» порт
 
         await Assert.ThrowsAsync<DormExecutionException>(() => db.CheckConnection());
     }
@@ -30,7 +30,7 @@ public class DatabaseTests
     {
         var db = new Database("name", "srv", "u", "pw", 3307);
 
-        // constructConnectionString — internal, доступен через InternalsVisibleTo.
+        // constructConnectionString — internal, доступний через InternalsVisibleTo.
         var conn = db.constructConnectionString();
 
         Assert.Contains("Server=srv", conn);

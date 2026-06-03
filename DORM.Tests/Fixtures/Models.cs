@@ -25,8 +25,8 @@ public class CatalogModel
 }
 
 /// <summary>
-/// Модель для проверки работы [Name] на свойстве — колонка должна называться "EmailAddress",
-/// а property — "Email". Покрывает фикс бага в MySqlCrudQuery.Insert.
+/// Модель для перевірки роботи [Name] на властивості — колонка має називатися "EmailAddress",
+/// а property — "Email". Покриває фікс багу у MySqlCrudQuery.Insert.
 /// </summary>
 [Name("TRenamed")]
 public class RenamedModel
@@ -56,7 +56,7 @@ public class WithDefaultsModel
     public DateTime CreatedAt { get; set; }
 }
 
-/// <summary>Без [Name] — таблица должна называться так же, как класс.</summary>
+/// <summary>Без [Name] — таблиця має називатися так само, як клас.</summary>
 public class PlainEntity
 {
     [PK]

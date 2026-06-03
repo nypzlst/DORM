@@ -1,9 +1,9 @@
 namespace TestORM;
 
 /// <summary>
-/// Минимальный загрузчик .env-файлов: KEY=VALUE по строкам, без подстановок и сложного экранирования.
-/// Поддерживает: пустые строки, комментарии (#...), значения в "..." и '...', BOM в начале файла.
-/// Уже выставленные переменные окружения процесса не перезаписываются.
+/// Мінімальний завантажувач .env-файлів: KEY=VALUE по рядках, без підстановок і складного екранування.
+/// Підтримує: порожні рядки, коментарі (#...), значення у "..." та '...', BOM на початку файлу.
+/// Уже виставлені змінні оточення процесу не перезаписуються.
 /// </summary>
 internal static class DotEnv
 {
@@ -17,7 +17,7 @@ internal static class DotEnv
             var line = rawLine.Trim();
             if (line.Length == 0 || line.StartsWith('#')) continue;
 
-            // Поддерживаем нотацию `export KEY=VALUE`.
+            // Підтримуємо нотацію `export KEY=VALUE`.
             if (line.StartsWith("export ", StringComparison.Ordinal))
                 line = line.Substring("export ".Length).TrimStart();
 
@@ -27,7 +27,7 @@ internal static class DotEnv
             var key = line.Substring(0, eq).Trim();
             var value = line.Substring(eq + 1).Trim();
 
-            // Снимаем парные кавычки.
+            // Знімаємо парні лапки.
             if (value.Length >= 2 &&
                 ((value[0] == '"' && value[^1] == '"') ||
                  (value[0] == '\'' && value[^1] == '\'')))
@@ -42,8 +42,8 @@ internal static class DotEnv
     }
 
     /// <summary>
-    /// Поднимаемся вверх от текущей директории и от каталога с бинарём, ищем .env.
-    /// Полезно при запуске из bin/Debug/...
+    /// Піднімаємося вгору від поточної директорії і від каталогу з бінарником, шукаємо .env.
+    /// Корисно при запуску з bin/Debug/...
     /// </summary>
     private static string? FindDefaultPath()
     {

@@ -60,7 +60,7 @@ public class TrackChangesTests
         sut.TrackInsert(new { }, "T", "Id");
         sut.TrackUpdate(new { }, "T", "Id");
 
-        // Один уже отметим как Failed — он не должен переключиться на Committed.
+        // Один уже позначимо як Failed — він не повинен переключитись на Committed.
         sut.SetStatus(sut.Operations[0].Id, EOperationStatus.Failed);
 
         sut.MarkCommitted();

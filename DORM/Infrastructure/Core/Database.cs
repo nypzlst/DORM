@@ -51,7 +51,7 @@ namespace DORM.Infrastructure.Core
         }
 
         /// <summary>
-        /// Возвращает строку подключения, лениво кэшируя её в QueryConn после первого построения.
+        /// Повертає рядок підключення, ліниво кешуючи його в QueryConn після першої побудови.
         /// </summary>
         private string GetConnectionString()
         {

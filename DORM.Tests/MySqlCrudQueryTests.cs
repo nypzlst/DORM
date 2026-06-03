@@ -27,12 +27,12 @@ public class MySqlCrudQueryTests
     public void CreateTable_Catalog_GeneratesForeignKey_PointingToReferencedTableName()
     {
         var crud = NewCrud();
-        // Прогреем кэш родительской таблицы — это в реальном коде делает CreateTable<UserModel>.
+        // Прогріваємо кеш батьківської таблиці — у реальному коді це робить CreateTable<UserModel>.
         crud.CreateTable(new UserModel());
         var sql = crud.CreateTable(new CatalogModel());
 
         Assert.Contains("FOREIGN KEY (IdUser) REFERENCES TUser(Id)", sql);
-        // Дефолт для строки должен быть в кавычках.
+        // Дефолт для рядка має бути у лапках.
         Assert.Contains("DEFAULT 'Template'", sql);
     }
 
@@ -61,8 +61,8 @@ public class MySqlCrudQueryTests
     [Fact]
     public void Insert_RenamedModel_UsesColumnName_NotPropertyName()
     {
-        // Регрессионный тест на ранее найденный баг: Insert использовал info.Name,
-        // и при [Name("EmailAddress")] на свойстве Email генерировал неверный SQL.
+        // Регресійний тест на раніше знайдений баг: Insert використовував info.Name,
+        // і при [Name("EmailAddress")] на властивості Email генерував неправильний SQL.
         var crud = NewCrud();
         var pq = crud.Insert(new RenamedModel { Email = "x@y.z" });
 
@@ -91,7 +91,7 @@ public class MySqlCrudQueryTests
 
         Assert.Contains("UPDATE TUser SET", pq.Sql);
         Assert.Contains("Email = @Email", pq.Sql);
-        Assert.DoesNotContain("Id = @Id,", pq.Sql); // PK не в SET
+        Assert.DoesNotContain("Id = @Id,", pq.Sql); // PK не у SET
         Assert.Contains("WHERE Id = @Id", pq.Sql);
 
         Assert.Equal("u@e.com", pq.Parameters["@Email"]);
@@ -102,8 +102,8 @@ public class MySqlCrudQueryTests
     public void Update_NullPk_Throws()
     {
         var crud = NewCrud();
-        // Id это int, в null его не положишь, поэтому проверим на свежей модели,
-        // где PK можно занулить.
+        // Id це int, у null його не покладеш, тому перевіримо на свіжій моделі,
+        // де PK можна занулити.
         Assert.Throws<ArgumentException>(() => crud.Update(new NullablePkModel()));
     }
 
@@ -126,7 +126,7 @@ public class MySqlCrudQueryTests
     public void Select_MemberExpression_GeneratesSingleAliasedColumn()
     {
         var crud = NewCrud();
-        crud.CreateTable(new UserModel()); // прогреваем кэш
+        crud.CreateTable(new UserModel()); // прогріваємо кеш
 
         var sql = crud.Select<UserModel, string>(u => u.Email!);
 
@@ -150,19 +150,19 @@ public class MySqlCrudQueryTests
         var crud = NewCrud();
         crud.CreateTable(new UserModel());
 
-        // Тело-выражение — BinaryExpression, не NewExpression и не MemberExpression.
+        // Тіло-вираз — BinaryExpression, не NewExpression і не MemberExpression.
         Assert.Throws<ArgumentException>(
             () => crud.Select<UserModel, string>(u => u.Email + "_x"));
     }
 
     /// <summary>
-    /// Хелпер для вывода типа анонимной проекции — generic'и выводятся из лямбды.
+    /// Хелпер для виведення типу анонімної проєкції — generic'и виводяться з лямбди.
     /// </summary>
     private static string SelectAnon<T, TR>(MySqlCrudQuery crud, Expression<Func<T, TR>> selector)
         where T : class
         => crud.Select<T, TR>(selector);
 
-    // ─── вспомогательные модели ─────────────────────────────────────────────
+    // ─── допоміжні моделі ───────────────────────────────────────────────────
 
     public class NullablePkModel
     {

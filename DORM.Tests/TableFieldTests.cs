@@ -22,10 +22,10 @@ public class TableFieldTests
     public void ToString_PrimaryKey_HasAutoIncrement_NoNotNull()
     {
         var f = new TableField("Id", "Int32", isNullability: false) { IsPrimaryKey = true };
-        // PK сам по себе содержит NOT NULL, и ветка с обычным NOT NULL не должна срабатывать.
+        // PK сам по собі містить NOT NULL, і гілка зі звичайним NOT NULL не повинна спрацьовувати.
         var sql = f.ToString();
         Assert.Contains("NOT NULL AUTO_INCREMENT PRIMARY KEY", sql);
-        // Не должно быть «двойного» NOT NULL.
+        // Не повинно бути «подвійного» NOT NULL.
         Assert.Equal(1, CountOccurrences(sql, "NOT NULL"));
     }
 
