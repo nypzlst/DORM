@@ -4,5 +4,6 @@
   </Folder>
   <Project Path="DORM/DORM.csproj" />
   <Project Path="TestORM/TestORM.csproj" Id="bb74cf78-78c7-41e1-a5c6-d0fdb038682b" />
+  <Project Path="DORM.CLI/DORM.CLI.csproj" />
   <Project Path="DORM.Tests/DORM.Tests.csproj" />
 </Solution>
